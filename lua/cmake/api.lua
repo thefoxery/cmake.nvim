@@ -6,6 +6,7 @@ local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
 
 local internal = require("cmake.internal")
+local state = require("cmake.state")
 
 local M = {}
 
@@ -14,9 +15,17 @@ local CMAKELISTS_FILE_NAME = "CMakeLists.txt"
 function M.setup(opts)
     opts = opts or {}
     -- TODO: save config in vim.g for now. We will look into persistence once we get things up and running.
-    vim.g.cmake_build_dir = opts.build_dir or "build"
-    vim.g.cmake_build_type = opts.default_build_type or "Debug"
-    vim.g.cmake_user_args = opts.user_args or "-DCMAKE_EXPORT_COMPILE_COMMANDS=1"
+    state = state or {}
+    state.build_dir = opts.build_dir or "build"
+    state.build_type = opts.default_build_type or "Debug"
+    state.user_args = ""
+    state.build_target = ""
+
+    opts.user_args = opts.user_args or {}
+    for _, arg in ipairs(opts.user_args) do
+        state.user_args = string.format("%s %s", state.user_args, arg)
+    end
+    print(vim.inspect(state))
 
     vim.api.nvim_create_user_command("CMakeConfigure", function()
         M.configure_project()
@@ -28,7 +37,7 @@ function M.is_cmake_project()
 end
 
 function M.get_build_dir()
-    return vim.g.cmake_build_dir
+    return state.build_dir
 end
 
 function M.get_source_dir()
@@ -36,14 +45,14 @@ function M.get_source_dir()
 end
 
 function M.get_build_type()
-    return vim.g.cmake_build_type
+    return state.build_type
 end
 
 function M.configure_project()
     local command = internal._create_configure_command(
         M.get_source_dir(),
         M.get_build_dir(),
-        string.format("%s -DCMAKE_BUILD_TYPE=%s", vim.g.cmake_user_args, vim.g.cmake_build_type)
+        string.format("%s -DCMAKE_BUILD_TYPE=%s", state.user_args, state.build_type)
     )
     internal._execute_command(command)
 end
@@ -106,8 +115,8 @@ function M.get_target_binary_path(build_target_name)
 end
 
 function M.run_build_target()
-    local build_target = vim.g.cmake_build_target
-    local build_dir = vim.g.cmake_build_dir
+    local build_target = state.build_target
+    local build_dir = state.build_dir
     if build_target == "" then
         print(string.format("Can't run build target: '%s'", build_target))
         return
@@ -307,7 +316,11 @@ function M.select_build_target()
 end
 
 function M.set_build_target(build_target)
-    vim.g.cmake_build_target = build_target
+    state.build_target = build_target
+end
+
+function M.set_build_type(build_type)
+    state.build_type = build_type
 end
 
 function M.select_build_type()
@@ -330,10 +343,6 @@ function M.select_build_type()
             return true
         end,
     }):find()
-end
-
-function M.set_build_type(build_type)
-    vim.g.cmake_build_type = build_type
 end
 
 return M
