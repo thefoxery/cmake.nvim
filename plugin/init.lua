@@ -1,0 +1,3 @@
+
+-- print("cmake plugin init")
+
