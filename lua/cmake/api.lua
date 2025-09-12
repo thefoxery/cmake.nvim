@@ -12,9 +12,10 @@ local M = {}
 
 local CMAKELISTS_FILE_NAME = "CMakeLists.txt"
 
+M.state = state
+
 function M.setup(opts)
     opts = opts or {}
-    -- TODO: save config in vim.g for now. We will look into persistence once we get things up and running.
     state = state or {}
     state.build_dir = opts.build_dir or "build"
     state.build_type = opts.default_build_type or "Debug"
@@ -25,11 +26,16 @@ function M.setup(opts)
     for _, arg in ipairs(opts.user_args) do
         state.user_args = string.format("%s %s", state.user_args, arg)
     end
-    print(vim.inspect(state))
 
     vim.api.nvim_create_user_command("CMakeConfigure", function()
         M.configure_project()
     end, {})
+
+    vim.api.nvim_create_user_command("CMakeBuild", function()
+        M.build_project()
+    end, {})
+
+    state.loaded = true
 end
 
 function M.is_cmake_project()
