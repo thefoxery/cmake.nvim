@@ -35,7 +35,7 @@ function M.setup(opts)
         M.build_project()
     end, {})
 
-    state.loaded = true
+    state.is_setup = true
 end
 
 function M.is_cmake_project()
@@ -52,6 +52,10 @@ end
 
 function M.get_build_type()
     return state.build_type
+end
+
+function M.get_build_target()
+    return state.build_target
 end
 
 function M.configure_project()
@@ -349,6 +353,10 @@ function M.select_build_type()
             return true
         end,
     }):find()
+end
+
+function M.is_setup()
+    return state.is_setup
 end
 
 return M
