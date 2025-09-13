@@ -1,10 +1,4 @@
 
-local pickers = require("telescope.pickers")
-local finders = require("telescope.finders")
-local conf = require("telescope.config").values
-local actions = require("telescope.actions")
-local action_state = require("telescope.actions.state")
-
 local internal = require("cmake.internal")
 local state = require("cmake.state")
 
@@ -12,11 +6,8 @@ local M = {}
 
 local CMAKELISTS_FILE_NAME = "CMakeLists.txt"
 
-M.state = state
-
 function M.setup(opts)
     opts = opts or {}
-    state = state or {}
     state.build_dir = opts.build_dir or "build"
     state.build_type = opts.default_build_type or "Debug"
     state.user_args = ""
@@ -38,6 +29,10 @@ function M.setup(opts)
     state.is_setup = true
 end
 
+function M.is_setup()
+    return state.is_setup
+end
+
 function M.is_cmake_project()
     return vim.fn.glob(CMAKELISTS_FILE_NAME) ~= ""
 end
@@ -50,8 +45,16 @@ function M.get_source_dir()
     return "."
 end
 
+function M.set_build_type(build_type)
+    state.build_type = build_type
+end
+
 function M.get_build_type()
     return state.build_type
+end
+
+function M.set_build_target(build_target)
+    state.build_target = build_target
 end
 
 function M.get_build_target()
@@ -303,60 +306,6 @@ function M.get_build_target_names()
         table.insert(build_target_names, vim.split(vim.trim(build_targets[i]), " ")[2])
     end
     return build_target_names
-end
-
-function M.select_build_target()
-    pickers.new({}, {
-        prompt_title = "Select Build Target",
-        finder = finders.new_table {
-            results = M.get_build_target_names(),
-        },
-        sorter = conf.generic_sorter({}),
-        attach_mappings = function(prompt_bufnr, map)
-            actions.select_default:replace(function()
-                local selection = action_state.get_selected_entry()
-                actions.close(prompt_bufnr)
-                selection = vim.trim(selection[1])
-                M.set_build_target(selection)
-                print(string.format("CMake build target set to '%s'", selection))
-            end)
-            return true
-        end,
-    }):find()
-end
-
-function M.set_build_target(build_target)
-    state.build_target = build_target
-end
-
-function M.set_build_type(build_type)
-    state.build_type = build_type
-end
-
-function M.select_build_type()
-    local configurations = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" }
-
-    pickers.new({}, {
-        prompt_title = "Select Build Type",
-        finder = finders.new_table {
-            results = configurations
-        },
-        sorter = conf.generic_sorter({}),
-        attach_mappings = function(prompt_bufnr, map)
-            actions.select_default:replace(function()
-                local selection = action_state.get_selected_entry()
-                actions.close(prompt_bufnr)
-                selection = vim.trim(selection[1])
-                M.set_build_type(selection)
-                print(string.format("CMake build type set to '%s'", selection))
-            end)
-            return true
-        end,
-    }):find()
-end
-
-function M.is_setup()
-    return state.is_setup
 end
 
 return M
