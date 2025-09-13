@@ -6,13 +6,26 @@
 - to make life easier working with CMake projects in neovim.
 - to learn about neovim plugin development
 
+## goal
+
+To get up and running as fast as possible with CMake in neovim
+- install -> setup (with sensible defaults) -> custom setup (optional) -> start working
+
 ## overview
 
-In very early development. Expect things to break.
+In very early development. Public API may be subject to change etc. You know the drill!
+
+As soon as the plugin gets into a state where it may be more useful for the public, tags will
+be introduced to lock down certain aspects of stability.
 
 ## requirements
 
-TBD
+- Early commits had a dependency on Telescope which is now moved to a separate plugin (thefoxery/telescope-cmake.nvim)
+
+## limitations
+
+- variables does not support function statements
+- variable expansion is currently limited to ${PROJECT_NAME}
 
 ## install
 
