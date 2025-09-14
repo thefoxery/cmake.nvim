@@ -6,9 +6,12 @@ local M = {}
 
 local CMAKELISTS_FILE_NAME = "CMakeLists.txt"
 
+local default_build_types = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" }
+
 function M.setup(opts)
     opts = opts or {}
     state.build_dir = opts.build_dir or "build"
+    state.build_types = opts.build_types or default_build_types
     state.build_type = opts.default_build_type or "Debug"
     state.user_args = ""
     state.build_target = ""
@@ -51,6 +54,10 @@ end
 
 function M.get_build_type()
     return state.build_type
+end
+
+function M.get_build_types()
+    return state.build_types
 end
 
 function M.set_build_target(build_target)
