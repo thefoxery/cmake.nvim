@@ -8,15 +8,22 @@ local CMAKELISTS_FILE_NAME = "CMakeLists.txt"
 
 local default_build_types = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" }
 
+local resolve = function(parameter)
+    if type(parameter) == "function" then
+        return parameter()
+    else
+        return parameter
+    end
+end
+
 function M.setup(opts)
     opts = opts or {}
-    state.build_dir = opts.build_dir or "build"
-    state.build_types = opts.build_types or default_build_types
-    state.build_type = opts.default_build_type or "Debug"
-    state.user_args = ""
+    state.build_dir = resolve(opts.build_dir) or "build"
+    state.build_types = resolve(opts.build_types) or default_build_types
+    state.build_type = resolve(opts.default_build_type) or "Debug"
     state.build_target = ""
 
-    opts.user_args = opts.user_args or {}
+    opts.user_args = resolve(opts.user_args) or {}
     for _, arg in ipairs(opts.user_args) do
         state.user_args = string.format("%s %s", state.user_args, arg)
     end

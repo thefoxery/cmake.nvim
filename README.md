@@ -24,7 +24,7 @@ be introduced to lock down certain aspects of stability.
 
 ## limitations
 
-- variables does not support function statements
+Parsing CMakeLists.txt files
 - variable expansion is currently limited to ${PROJECT_NAME}
 
 ## install
