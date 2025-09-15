@@ -57,6 +57,7 @@ end
 
 function M.set_build_type(build_type)
     state.build_type = build_type
+    print(string.format("build type set to '%s'", build_type))
 end
 
 function M.get_build_type()
@@ -69,6 +70,7 @@ end
 
 function M.set_build_target(build_target)
     state.build_target = build_target
+    print(string.format("build target set to '%s'", build_target))
 end
 
 function M.get_build_target()
