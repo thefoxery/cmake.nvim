@@ -22,6 +22,10 @@ function M.setup(opts)
     state.build_types = resolve(opts.build_types) or default_build_types
     state.build_type = resolve(opts.default_build_type) or "Debug"
     state.build_target = ""
+    state.notify = state.notify or {
+        on_build_target_changed = true,
+        on_build_type_changed = true,
+    }
 
     opts.user_args = resolve(opts.user_args) or {}
     for _, arg in ipairs(opts.user_args) do
@@ -57,7 +61,9 @@ end
 
 function M.set_build_type(build_type)
     state.build_type = build_type
-    print(string.format("build type set to '%s'", build_type))
+    if state.notify.on_build_type_changed then
+        print(string.format("build type set to '%s'", build_type))
+    end
 end
 
 function M.get_build_type()
@@ -70,11 +76,18 @@ end
 
 function M.set_build_target(build_target)
     state.build_target = build_target
-    print(string.format("build target set to '%s'", build_target))
+    if state.notify.on_build_target_changed then
+        print(string.format("build target changed to '%s'", build_target))
+    end
 end
 
 function M.get_build_target()
     return state.build_target
+end
+
+function M.set_notification_enabled(notification, enabled)
+    state.notify = state.notify or {}
+    state.notify[notification] = enabled
 end
 
 function M.configure_project()
