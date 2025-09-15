@@ -6,7 +6,15 @@ local M = {}
 
 local CMAKELISTS_FILE_NAME = "CMakeLists.txt"
 
-local default_build_types = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" }
+local default_opts = {
+    build_dir = "build",
+    build_types = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" },
+    build_type = "Debug",
+    notifications = {
+        ["on_build_target_changed"] = true,
+        ["on_build_type_changed"] = true,
+    },
+}
 
 local resolve = function(parameter)
     if type(parameter) == "function" then
@@ -18,14 +26,16 @@ end
 
 function M.setup(opts)
     opts = opts or {}
-    state.build_dir = resolve(opts.build_dir) or "build"
-    state.build_types = resolve(opts.build_types) or default_build_types
-    state.build_type = resolve(opts.default_build_type) or "Debug"
+    state.build_dir = resolve(opts.build_dir) or default_opts.build_dir
+    state.build_types = resolve(opts.build_types) or default_opts.build_types
+    state.build_type = resolve(opts.default_build_type) or default_opts.build_type
     state.build_target = ""
-    state.notify = state.notify or {
-        on_build_target_changed = true,
-        on_build_type_changed = true,
-    }
+    state.notifications = state.notifications or {}
+
+    opts.notifications = resolve(opts.notifications) or default_opts.notifications
+    for notification, enabled in pairs(opts.notifications) do
+        state.notifications[notification] = enabled
+    end
 
     opts.user_args = resolve(opts.user_args) or {}
     for _, arg in ipairs(opts.user_args) do
@@ -61,7 +71,7 @@ end
 
 function M.set_build_type(build_type)
     state.build_type = build_type
-    if state.notify.on_build_type_changed then
+    if state.notifications.on_build_type_changed then
         print(string.format("build type set to '%s'", build_type))
     end
 end
@@ -76,7 +86,7 @@ end
 
 function M.set_build_target(build_target)
     state.build_target = build_target
-    if state.notify.on_build_target_changed then
+    if state.notifications.on_build_target_changed then
         print(string.format("build target changed to '%s'", build_target))
     end
 end
@@ -86,8 +96,8 @@ function M.get_build_target()
 end
 
 function M.set_notification_enabled(notification, enabled)
-    state.notify = state.notify or {}
-    state.notify[notification] = enabled
+    state.notifications = state.notifications or {}
+    state.notifications[notification] = enabled
 end
 
 function M.configure_project()
