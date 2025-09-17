@@ -16,8 +16,7 @@ Suggested companion plugins
     - Displays build configuration in lualine
     - Configurable for any build system
 
-If you are looking for something similar for Make
-- [make.nvim](https://github.com/thefoxery/make.nvim)
+If you are looking for a similar plugin for Make, then check out: [make.nvim](https://github.com/thefoxery/make.nvim)
 
 ## Goal
 
