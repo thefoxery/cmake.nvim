@@ -9,20 +9,26 @@ local default_opts = {
     source_dir = ".",
     build_types = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" },
     build_type = "Debug",
+    build_target = "",
+    user_args = {
+        configuration = {},
+        build = {},
+    },
 }
 
-function M.setup(opts)
-    opts = opts or {}
-    state.build_dir = internal._resolve(opts.build_dir) or default_opts.build_dir
-    state.build_types = internal._resolve(opts.build_types) or default_opts.build_types
-    state.build_type = internal._resolve(opts.default_build_type) or default_opts.build_type
-    state.source_dir = internal._resolve(opts.source_dir) or default_opts.source_dir
-    state.build_target = ""
+function M.setup(user_opts)
+    user_opts = user_opts or {}
+    user_opts.user_args = user_opts.user_args or {}
 
-    opts.user_args = internal._resolve(opts.user_args) or {}
-    for _, arg in ipairs(opts.user_args) do
-        state.user_args = string.format("%s %s", state.user_args, arg)
-    end
+    state.build_dir = internal._resolve(user_opts.build_dir) or default_opts.build_dir
+    state.source_dir = internal._resolve(user_opts.source_dir) or default_opts.source_dir
+    state.build_types = internal._resolve(user_opts.build_types) or default_opts.build_types
+    state.build_type = internal._resolve(user_opts.default_build_type) or default_opts.build_type
+    state.build_target = internal._resolve(user_opts.build_target) or default_opts.build_target
+
+    state.user_args = state.user_args or {}
+    state.user_args.configuration = internal._resolve(user_opts.user_args.configuration) or default_opts.user_args.configuration
+    state.user_args.build = internal._resolve(user_opts.user_args.build) or default_opts.user_args.build
 
     vim.api.nvim_create_user_command("CMakeConfigure", function()
         M.configure_project()
@@ -82,18 +88,30 @@ function M.set_build_target(build_target)
 end
 
 function M.configure_project()
+    local user_args = ""
+    for i, arg in ipairs(state.user_args.configuration) do
+        print(i)
+        user_args = string.format("%s %s", user_args, arg)
+    end
+
     local command = internal._create_configure_command(
         M.get_source_dir(),
         M.get_build_dir(),
-        string.format("%s -DCMAKE_BUILD_TYPE=%s", state.user_args, state.build_type)
+        string.format("-DCMAKE_BUILD_TYPE=%s %s", state.build_type, user_args)
     )
     internal._execute_command(command)
 end
 
 function M.build_project()
+    local user_args = ""
+    for _, arg in ipairs(state.user_args.build) do
+        user_args = string.format("%s %s", user_args, arg)
+    end
+
     local command = internal._create_build_command(
         M.get_build_dir(),
-        M.get_build_type()
+        M.get_build_type(),
+        user_args
     )
     internal._execute_command(command)
 end
