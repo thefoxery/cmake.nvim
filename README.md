@@ -31,6 +31,7 @@ be introduced to lock down certain stability.
 # default configuration
 require("cmake").setup({
     build_dir = "build",
+    source_dir = ".",
     default_build_type = "Debug", -- assume this if you dont know
     build_types = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" }
 })

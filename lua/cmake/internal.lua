@@ -3,6 +3,14 @@ local M = {}
 
 M._CMAKELISTS_FILE_NAME = "CMakeLists.txt"
 
+function M._resolve(opt)
+    if type(opt) == "function" then
+        return opt()
+    else
+        return opt
+    end
+end
+
 function M._create_configure_command(source_dir, build_dir, defines)
     return string.format("cmake -S %s -B %s %s", source_dir, build_dir, defines)
 end

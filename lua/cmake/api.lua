@@ -6,26 +6,20 @@ local M = {}
 
 local default_opts = {
     build_dir = "build",
+    source_dir = ".",
     build_types = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" },
     build_type = "Debug",
 }
 
-local resolve = function(parameter)
-    if type(parameter) == "function" then
-        return parameter()
-    else
-        return parameter
-    end
-end
-
 function M.setup(opts)
     opts = opts or {}
-    state.build_dir = resolve(opts.build_dir) or default_opts.build_dir
-    state.build_types = resolve(opts.build_types) or default_opts.build_types
-    state.build_type = resolve(opts.default_build_type) or default_opts.build_type
+    state.build_dir = internal._resolve(opts.build_dir) or default_opts.build_dir
+    state.build_types = internal._resolve(opts.build_types) or default_opts.build_types
+    state.build_type = internal._resolve(opts.default_build_type) or default_opts.build_type
+    state.source_dir = internal._resolve(opts.source_dir) or default_opts.source_dir
     state.build_target = ""
 
-    opts.user_args = resolve(opts.user_args) or {}
+    opts.user_args = internal._resolve(opts.user_args) or {}
     for _, arg in ipairs(opts.user_args) do
         state.user_args = string.format("%s %s", state.user_args, arg)
     end
@@ -54,8 +48,7 @@ function M.get_build_dir()
 end
 
 function M.get_source_dir()
-    -- TODO: parameterize
-    return "."
+    return state.source_dir
 end
 
 function M.get_build_types()
