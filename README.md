@@ -1,7 +1,9 @@
 
 # cmake.nvim
 
-Provides a basic API for CMake functionality
+# Purpose
+
+Provide a basic API for CMake functionality
 - configure_project()
 - build_project()
 - set_build_type(build_type)
