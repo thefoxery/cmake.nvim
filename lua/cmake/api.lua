@@ -10,10 +10,6 @@ local default_opts = {
     build_dir = "build",
     build_types = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" },
     build_type = "Debug",
-    notifications = {
-        ["on_build_target_changed"] = true,
-        ["on_build_type_changed"] = true,
-    },
 }
 
 local resolve = function(parameter)
@@ -30,12 +26,6 @@ function M.setup(opts)
     state.build_types = resolve(opts.build_types) or default_opts.build_types
     state.build_type = resolve(opts.default_build_type) or default_opts.build_type
     state.build_target = ""
-    state.notifications = state.notifications or {}
-
-    opts.notifications = resolve(opts.notifications) or default_opts.notifications
-    for notification, enabled in pairs(opts.notifications) do
-        state.notifications[notification] = enabled
-    end
 
     opts.user_args = resolve(opts.user_args) or {}
     for _, arg in ipairs(opts.user_args) do
@@ -57,6 +47,10 @@ function M.is_setup()
     return state.is_setup
 end
 
+function M.is_project_directory()
+    return M.is_cmake_project()
+end
+
 function M.is_cmake_project()
     return vim.fn.glob(CMAKELISTS_FILE_NAME) ~= ""
 end
@@ -69,35 +63,34 @@ function M.get_source_dir()
     return "."
 end
 
-function M.set_build_type(build_type)
-    state.build_type = build_type
-    if state.notifications.on_build_type_changed then
-        print(string.format("build type set to '%s'", build_type))
-    end
+function M.get_build_types()
+    return state.build_types
 end
 
 function M.get_build_type()
     return state.build_type
 end
 
-function M.get_build_types()
-    return state.build_types
+function M.set_build_type(build_type)
+    state.build_type = build_type
 end
 
-function M.set_build_target(build_target)
-    state.build_target = build_target
-    if state.notifications.on_build_target_changed then
-        print(string.format("build target changed to '%s'", build_target))
+function M.get_build_targets()
+    local build_targets = vim.fn.systemlist("cmake --build build --target help")
+
+    local build_target_names = {}
+    for i=2, #build_targets do
+        table.insert(build_target_names, vim.split(vim.trim(build_targets[i]), " ")[2])
     end
+    return build_target_names
 end
 
 function M.get_build_target()
     return state.build_target
 end
 
-function M.set_notification_enabled(notification, enabled)
-    state.notifications = state.notifications or {}
-    state.notifications[notification] = enabled
+function M.set_build_target(build_target)
+    state.build_target = build_target
 end
 
 function M.configure_project()
@@ -124,7 +117,7 @@ function M.get_target_binary_path(build_target_name)
 
     local platform = vim.loop.os_uname().sysname
 
-    local build_targets = M.get_build_targets()
+    local build_targets = M.get_build_targets_data()
     if build_targets == nil then
         return ""
     end
@@ -170,7 +163,7 @@ function M.run_build_target()
     local build_target = state.build_target
     local build_dir = state.build_dir
     if build_target == "" then
-        print(string.format("Can't run build target: '%s'", build_target))
+        vim.notify(string.format("Can't run build target: '%s'", build_target), vim.log.levels.ERROR)
         return
     end
 
@@ -181,7 +174,7 @@ function M.run_build_target()
 
     local path = string.format("%s/%s/%s", vim.fn.getcwd(), build_dir, binary_relative_path)
     if vim.fn.filereadable(path) == 0 then
-        print(string.format("binary not found: %s", path))
+        vim.notify(string.format("binary not found: %s", path), vim.log.levels.ERROR)
         return
     end
     internal._execute_command(path)
@@ -245,7 +238,7 @@ function M.get_cmakelists_files(root_directory, cmakelists_files)
     end
 end
 
-function M.get_build_targets()
+function M.get_build_targets_data()
     local cmakelists_files = {}
     M.get_cmakelists_files(vim.fn.getcwd(), cmakelists_files)
 
@@ -335,16 +328,6 @@ function M.get_project(file)
     project.path = vim.fn.fnamemodify(project.path, ":h")
 
     return project
-end
-
-function M.get_build_target_names()
-    local build_targets = vim.fn.systemlist("cmake --build build --target help")
-
-    local build_target_names = {}
-    for i=2, #build_targets do
-        table.insert(build_target_names, vim.split(vim.trim(build_targets[i]), " ")[2])
-    end
-    return build_target_names
 end
 
 return M
