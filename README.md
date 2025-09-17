@@ -53,6 +53,10 @@ require("cmake").setup({
     source_dir = ".",
     default_build_type = "Debug", -- assume this if build system reports ""
     build_types = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" }
+    user_args = {
+        configuration = {},
+        build = {},
+    },
 })
 ```
 
@@ -86,9 +90,6 @@ Brain dump of what is probably on the roadmap
 
 - Improved CMakeLists.txt parsing
     - Variable expansion (at least one level)
-
-- Parameters
-    - user_args = { configure = "", build = "" }
 
 ## Thanks / Inspiration
 
