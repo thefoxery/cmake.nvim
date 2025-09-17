@@ -1,14 +1,14 @@
 
-# cmake.nvim 
+# cmake.nvim
 
 Provides a basic API for CMake functionality
-
-- Configure
-- Build
-- Get build target binary path (helps to set up run/debug)
+- configure_project()
+- build_project()
+- set_build_type(build_type)
+- set_build_target(build_target)
+- get_target_binary_path(build_target)
 
 Suggested companion plugins
-
 - [telescope-build](https://github.com/thefoxery/telescope-build.nvim)
     - Telescope powered pickers for build type/target
     - Configurable for any build system
@@ -19,19 +19,19 @@ Suggested companion plugins
 If you are looking for something similar for Make
 - [make.nvim](https://github.com/thefoxery/make.nvim)
 
-## goal
+## Goal
 
 To get up and running as fast as possible with CMake in neovim
 - install -> setup (with sensible defaults) -> custom setup (optional) -> start working
 
-## project status
+## Project status
 
 In very early development. Public API may be subject to change etc. You know the drill!
 
 As soon as the plugin gets into a state where it may be more useful for the public, tags will
 be introduced to lock down stability.
 
-## install
+## Install
 
 ```
 # lazy
@@ -41,7 +41,7 @@ be introduced to lock down stability.
 }
 ```
 
-## setup
+## Setup
 
 ```
 # plugin setup
@@ -55,7 +55,7 @@ require("cmake").setup({
 })
 ```
 
-## example dap configuration
+## Example DAP configuration
 
 ```
 dap.configurations.cpp = {
@@ -74,7 +74,7 @@ dap.configurations.cpp = {
     },
 ```
 
-## limitations / known issues
+## Limitations / Known issues
 
 Parsing CMakeLists.txt files
 - variable expansion is currently limited to ${PROJECT_NAME} so only paths to build target binaries with a fixed name or ${PROJECT_NAME} will be found
@@ -89,7 +89,7 @@ Brain dump of what is probably on the roadmap
 - Parameters
     - user_args = { configure = "", build = "" }
 
-## thanks / inspiration
+## Thanks / Inspiration
 
 Shoutout to the projects that got me started on this journey!
 
