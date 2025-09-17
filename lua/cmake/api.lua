@@ -110,7 +110,7 @@ function M.build_project()
     internal._execute_command(command)
 end
 
-function M.get_target_binary_path(build_target_name)
+function M.get_target_binary_relative_path(build_target_name)
     if build_target_name == nil or build_target_name == "" then
         return ""
     end
@@ -159,20 +159,30 @@ function M.get_target_binary_path(build_target_name)
     return string.format("%s/%s%s", build_target.path, binary_name, extension)
 end
 
-function M.run_build_target()
-    local build_target = state.build_target
-    local build_dir = state.build_dir
+function M.get_target_binary_path(build_target)
     if build_target == "" then
         vim.notify(string.format("Can't run build target: '%s'", build_target), vim.log.levels.ERROR)
-        return
+        return ""
     end
 
-    local binary_relative_path = M.get_target_binary_path(build_target)
+    local binary_relative_path = M.get_target_binary_relative_path(build_target)
     if binary_relative_path == nil or binary_relative_path == "" then
-        return
+        return ""
     end
 
+    local build_dir = state.build_dir
     local path = string.format("%s/%s/%s", vim.fn.getcwd(), build_dir, binary_relative_path)
+    if vim.fn.filereadable(path) == 0 then
+        vim.notify(string.format("binary not found: %s", path), vim.log.levels.ERROR)
+        return ""
+    end
+
+    return path
+end
+
+function M.run_build_target()
+    local build_target = state.build_target
+    local path = M.get_target_binary_path(build_target)
     if vim.fn.filereadable(path) == 0 then
         vim.notify(string.format("binary not found: %s", path), vim.log.levels.ERROR)
         return
