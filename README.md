@@ -10,7 +10,7 @@ Provides a basic API for CMake functionality
 Suggested companion plugins
 
 - [telescope-build](https://github.com/thefoxery/telescope-build.nvim)
-    - Select build type/target using telescope picker
+    - Telescope powered pickers for build type/target
     - Configurable for any build system
 - [lualine-build](https://github.com/thefoxery/lualine-build.nvim)
     - Displays build configuration in lualine
@@ -93,7 +93,6 @@ Brain dump of what is probably on the roadmap
 
 Shoutout to the projects that got me started on this journey!
 
-cmake4vim
 - [cmake4vim](https://github.com/ilyachur/cmake4vim)
 - [telescope-cmake4vim](https://github.com/SantinoKeupp/telescope-cmake4vim.nvim)
 - [lualine-cmake4vim](https://github.com/SantinoKeupp/lualine-cmake4vim.nvim)
