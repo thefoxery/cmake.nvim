@@ -34,7 +34,7 @@ be introduced to lock down stability.
 
 ## Install
 
-```
+```lua
 # lazy
 
 {
@@ -44,7 +44,7 @@ be introduced to lock down stability.
 
 ## Setup
 
-```
+```lua
 # plugin setup
 
 # default configuration
@@ -58,7 +58,7 @@ require("cmake").setup({
 
 ## Example DAP configuration
 
-```
+```lua
 dap.configurations.cpp = {
     {
         name = "Debug",
