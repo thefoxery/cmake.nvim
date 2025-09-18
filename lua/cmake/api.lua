@@ -49,6 +49,10 @@ function M.is_project_directory()
     return vim.fn.glob(internal._CMAKELISTS_FILE_NAME) ~= ""
 end
 
+function M.get_provider_name()
+    return "CMake"
+end
+
 function M.get_build_dir()
     return state.build_dir
 end
