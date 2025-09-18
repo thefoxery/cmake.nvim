@@ -4,6 +4,7 @@
 # Purpose
 
 Provide a basic API for CMake functionality
+- get_build_system_type()
 - configure_project()
 - build_project()
 - set_build_type(build_type)

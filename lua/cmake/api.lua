@@ -49,7 +49,7 @@ function M.is_project_directory()
     return vim.fn.glob(internal._CMAKELISTS_FILE_NAME) ~= ""
 end
 
-function M.get_provider_name()
+function M.get_build_system_type()
     return "CMake"
 end
 
