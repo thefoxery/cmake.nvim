@@ -94,7 +94,6 @@ end
 function M.configure_project()
     local user_args = ""
     for i, arg in ipairs(state.user_args.configuration) do
-        print(i)
         user_args = string.format("%s %s", user_args, arg)
     end
 
@@ -176,7 +175,6 @@ function M.get_target_binary_path(build_target)
     end
 
     local binary_relative_path = M.get_target_binary_relative_path(build_target)
-    print("binary_relative_path: " .. binary_relative_path)
     if binary_relative_path == nil or binary_relative_path == "" then
         return ""
     end
