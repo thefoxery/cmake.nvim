@@ -93,18 +93,47 @@ function M.set_build_target(build_target)
     state.build_target = build_target
 end
 
-function M.configure_project()
-    local user_args = ""
-    for _, arg in ipairs(state.user_args.configuration) do
-        user_args = string.format("%s %s", user_args, arg)
-    end
+function M.configure(
+    cmake_executable_path,
+    source_dir,
+    build_dir,
+    build_type,
+    args)
 
     local command = internal._create_configure_command(
+        cmake_executable_path,
+        source_dir,
+        build_dir,
+        build_type,
+        args
+    )
+
+    internal._execute_command(command)
+end
+
+function M.configure_project()
+    M.configure(
         state.cmake_executable_path,
         M.get_source_dir(),
         M.get_build_dir(),
-        string.format("-DCMAKE_BUILD_TYPE=%s %s", state.build_type, user_args)
+        M.get_build_type(),
+        state.user_args.configuration
     )
+end
+
+function M.build(
+    cmake_executable_path,
+    build_dir,
+    build_type,
+    args)
+
+    local command = internal._create_build_command(
+        cmake_executable_path,
+        build_dir,
+        build_type,
+        args
+    )
+
     internal._execute_command(command)
 end
 
@@ -114,12 +143,12 @@ function M.build_project()
         user_args = string.format("%s %s", user_args, arg)
     end
 
-    local command = internal._create_build_command(
+    M.build(
+        state.cmake_executable_path,
         M.get_build_dir(),
         M.get_build_type(),
-        user_args
+        state.user_args.build
     )
-    internal._execute_command(command)
 end
 
 function M.get_target_binary_relative_path(build_target_name)

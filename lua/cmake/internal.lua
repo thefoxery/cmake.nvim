@@ -1,7 +1,20 @@
 
 local M = {}
 
+M._PLUGIN_NAME = "cmake.nvim"
 M._CMAKELISTS_FILE_NAME = "CMakeLists.txt"
+
+local function args_to_string(args)
+    local s = ""
+    for i, arg in ipairs(args) do
+        if i > 0 then
+            s = s .. " "
+        end
+        print("tttype: " .. type(arg))
+        s = s .. vim.trim(arg)
+    end
+    return s
+end
 
 function M._resolve(opt)
     if type(opt) == "function" then
@@ -11,18 +24,91 @@ function M._resolve(opt)
     end
 end
 
----
---- cmake [options] <source-dir> <build_options> | <existing build dir> 
----
-function M._create_configure_command(cmake_executable_path, source_dir, build_dir, defines)
-    return string.format("%s -S %s -B %s %s", cmake_executable_path, source_dir, build_dir, defines)
+local function is_executable(path)
+    return true -- TODO: implement
+end
+
+function M._create_cmake_command(cmake_executable_path, args)
+    local command = cmake_executable_path
+    if args and #args > 0 then
+        command = string.format("%s %s", command, args_to_string(args))
+    end
+    return command
 end
 
 ---
---- cmake --build <build-dir> <args> <project-args>
+--- cmake [options] <source-dir> <build_options> | <existing build dir>
 ---
-function M._create_build_command(cmake_executable_path, build_dir, config, user_args)
-    return string.format("cmake --build %s --config %s %s", cmake_executable_path, build_dir, config, user_args)
+
+function M._create_configure_command(cmake_executable_path, source_dir, build_dir, build_type, args)
+    local base_error = "Failed creating CMake configuration command"
+
+    if not is_executable(cmake_executable_path) then
+        vim.notify(string.format("[%s] %s: CMake executable '%s' is not an executable", M._PLUGIN_NAME, base_error, cmake_executable_path), vim.log.levels.ERROR)
+        return
+    end
+
+    local cmake_file = vim.fn.globpath(source_dir, "CMakeLists.txt")
+    if #cmake_file == 0 then
+        vim.notify(string.format("[%s] %s: Parameter 'source_dir' (%s) has no %s file", M._PLUGIN_NAME, base_error, source_dir, M._CMAKELISTS_FILE_NAME), vim.log.levels.ERROR)
+        return
+    end
+
+    if build_dir == nil or build_dir == "" then
+        vim.notify(string.format("[%s] %s: Parameter 'build_dir' has invalid value of '%s'", M._PLUGIN_NAME, base_error, build_dir), vim.log.levels.ERROR)
+        return
+    end
+
+    if build_type == nil or build_type == "" then
+        vim.notify(string.format("[%s] %s: Parameter 'build_type' has invalid valued of '%s'", M._PLUGIN_NAME, base_error, build_type), vim.log.levels.ERROR)
+        return
+    end
+
+    local all_args = {
+        string.format("-S %s", source_dir),
+        string.format("-B %s", build_dir),
+        string.format("-DCMAKE_BUILD_TYPE=%s", build_type),
+    }
+
+    for _, arg in ipairs(args) do
+        table.insert(all_args, arg)
+    end
+
+    return M._create_cmake_command(cmake_executable_path, all_args)
+end
+
+---
+--- cmake --build <build-dir> <args>
+---
+
+function M._create_build_command(cmake_executable_path, build_dir, build_type, args)
+    local base_error = "Failed creating CMake build command"
+
+    if not is_executable(cmake_executable_path) then
+        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M._PLUGIN_NAME, base_error, cmake_executable_path), vim.log.levels.ERROR)
+        return ""
+    end
+
+    if build_dir == nil or build_dir == "" then
+        vim.notify(string.format("[%s] %s: Parameter 'build_dir' has invalid value of '%s'", M._PLUGIN_NAME, base_error, build_dir), vim.log.levels.ERROR)
+        return
+    end
+
+    if build_type == nil or build_type == "" then
+        vim.notify(string.format("[%s] %s: Parameter 'build_type' has invalid valued of '%s'", M._PLUGIN_NAME, base_error, build_type), vim.log.levels.ERROR)
+        return
+    end
+
+    local all_args = {
+        string.format("--build %s", build_dir),
+        string.format("--config %s", build_type),
+    }
+
+    for _, arg in ipairs(args) do
+        table.insert(all_args, arg)
+    end
+
+    return M._create_cmake_command(cmake_executable_path, all_args)
 end
 
 function M._execute_command(command)
