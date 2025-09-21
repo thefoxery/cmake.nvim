@@ -5,6 +5,7 @@ local state = require("cmake.state")
 local M = {}
 
 local default_opts = {
+    cmake_executable_path = "cmake",
     build_dir = "build",
     source_dir = ".",
     build_types = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" },
@@ -20,11 +21,12 @@ function M.setup(user_opts)
     user_opts = user_opts or {}
     user_opts.user_args = user_opts.user_args or {}
 
+    state.cmake_executable_path = internal._resolve(user_opts.cmake_executable_path) or default_opts.cmake_executable_path
     state.build_dir = internal._resolve(user_opts.build_dir) or default_opts.build_dir
     state.source_dir = internal._resolve(user_opts.source_dir) or default_opts.source_dir
     state.build_types = internal._resolve(user_opts.build_types) or default_opts.build_types
     state.build_type = internal._resolve(user_opts.default_build_type) or default_opts.build_type
-    state.build_target = internal._resolve(user_opts.build_target) or default_opts.build_target
+    state.build_target = default_opts.build_target
 
     state.user_args = state.user_args or {}
     state.user_args.configuration = internal._resolve(user_opts.user_args.configuration) or default_opts.user_args.configuration
@@ -32,7 +34,7 @@ function M.setup(user_opts)
 
     vim.api.nvim_create_user_command("CMakeConfigure", function()
         M.configure_project()
-    end, {})
+    end, { desc = "CMake: Configure" })
 
     vim.api.nvim_create_user_command("CMakeBuild", function()
         M.build_project()
@@ -93,11 +95,12 @@ end
 
 function M.configure_project()
     local user_args = ""
-    for i, arg in ipairs(state.user_args.configuration) do
+    for _, arg in ipairs(state.user_args.configuration) do
         user_args = string.format("%s %s", user_args, arg)
     end
 
     local command = internal._create_configure_command(
+        state.cmake_executable_path,
         M.get_source_dir(),
         M.get_build_dir(),
         string.format("-DCMAKE_BUILD_TYPE=%s %s", state.build_type, user_args)

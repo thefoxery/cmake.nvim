@@ -11,12 +11,18 @@ function M._resolve(opt)
     end
 end
 
-function M._create_configure_command(source_dir, build_dir, defines)
-    return string.format("cmake -S %s -B %s %s", source_dir, build_dir, defines)
+---
+--- cmake [options] <source-dir> <build_options> | <existing build dir> 
+---
+function M._create_configure_command(cmake_executable_path, source_dir, build_dir, defines)
+    return string.format("%s -S %s -B %s %s", cmake_executable_path, source_dir, build_dir, defines)
 end
 
-function M._create_build_command(build_dir, config, user_args)
-    return string.format("cmake --build %s --config %s %s", build_dir, config, user_args)
+---
+--- cmake --build <build-dir> <args> <project-args>
+---
+function M._create_build_command(cmake_executable_path, build_dir, config, user_args)
+    return string.format("cmake --build %s --config %s %s", cmake_executable_path, build_dir, config, user_args)
 end
 
 function M._execute_command(command)
