@@ -1,6 +1,7 @@
 
-local internal = require("cmake.internal")
-local state = require("cmake.state")
+local state = require("cmake.internal.state")
+local util = require("cmake.internal.util")
+local cmake = require("cmake.internal.cmake")
 
 local M = {}
 
@@ -21,16 +22,16 @@ function M.setup(user_opts)
     user_opts = user_opts or {}
     user_opts.user_args = user_opts.user_args or {}
 
-    state.cmake_executable_path = internal._resolve(user_opts.cmake_executable_path) or default_opts.cmake_executable_path
-    state.build_dir = internal._resolve(user_opts.build_dir) or default_opts.build_dir
-    state.source_dir = internal._resolve(user_opts.source_dir) or default_opts.source_dir
-    state.build_types = internal._resolve(user_opts.build_types) or default_opts.build_types
-    state.build_type = internal._resolve(user_opts.default_build_type) or default_opts.build_type
+    state.cmake_executable_path = util.resolve(user_opts.cmake_executable_path) or default_opts.cmake_executable_path
+    state.build_dir = util.resolve(user_opts.build_dir) or default_opts.build_dir
+    state.source_dir = util.resolve(user_opts.source_dir) or default_opts.source_dir
+    state.build_types = util.resolve(user_opts.build_types) or default_opts.build_types
+    state.build_type = util.resolve(user_opts.default_build_type) or default_opts.build_type
     state.build_target = default_opts.build_target
 
     state.user_args = state.user_args or {}
-    state.user_args.configuration = internal._resolve(user_opts.user_args.configuration) or default_opts.user_args.configuration
-    state.user_args.build = internal._resolve(user_opts.user_args.build) or default_opts.user_args.build
+    state.user_args.configuration = util.resolve(user_opts.user_args.configuration) or default_opts.user_args.configuration
+    state.user_args.build = util.resolve(user_opts.user_args.build) or default_opts.user_args.build
 
     vim.api.nvim_create_user_command("CMakeConfigure", function()
         M.configure_project()
@@ -48,7 +49,7 @@ function M.is_setup()
 end
 
 function M.is_project_directory()
-    return vim.fn.glob(internal._CMAKELISTS_FILE_NAME) ~= ""
+    return vim.fn.glob(cmake.CMAKELISTS_FILE_NAME) ~= ""
 end
 
 function M.get_build_system_type()
@@ -100,7 +101,7 @@ function M.configure(
     build_type,
     args)
 
-    local command = internal._create_configure_command(
+    local command = cmake.create_configure_command(
         cmake_executable_path,
         source_dir,
         build_dir,
@@ -108,7 +109,7 @@ function M.configure(
         args
     )
 
-    internal._execute_command(command)
+    util.execute_command(command)
 end
 
 function M.configure_project()
@@ -127,14 +128,14 @@ function M.build(
     build_type,
     args)
 
-    local command = internal._create_build_command(
+    local command = cmake.create_build_command(
         cmake_executable_path,
         build_dir,
         build_type,
         args
     )
 
-    internal._execute_command(command)
+    util.execute_command(command)
 end
 
 function M.build_project()
@@ -158,7 +159,7 @@ function M.get_target_binary_relative_path(build_target_name)
 
     local platform = vim.loop.os_uname().sysname
 
-    local build_targets = internal._get_build_targets_data()
+    local build_targets = cmake.get_build_targets_data()
     if build_targets == nil then
         return ""
     end
@@ -228,7 +229,7 @@ function M.run_build_target()
         vim.notify(string.format("binary not found: %s", path), vim.log.levels.ERROR)
         return
     end
-    internal._execute_command(path)
+    util.execute_command(path)
 end
 
 return M
