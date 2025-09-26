@@ -10,7 +10,6 @@ local function args_to_string(args)
         if i > 0 then
             s = s .. " "
         end
-        print("tttype: " .. type(arg))
         s = s .. vim.trim(arg)
     end
     return s
