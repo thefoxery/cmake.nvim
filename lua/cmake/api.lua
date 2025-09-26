@@ -5,6 +5,8 @@ local cmake = require("cmake.internal.cmake")
 
 local M = {}
 
+M.PLUGIN_NAME = "cmake.nvim"
+
 local default_opts = {
     cmake_executable_path = "cmake",
     build_dir = "build",
@@ -101,6 +103,29 @@ function M.configure(
     build_type,
     args)
 
+    local base_error = "Failed creating CMake configuration command"
+
+    if not util.is_executable(cmake_executable_path) then
+        vim.notify(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, cmake_executable_path), vim.log.levels.ERROR)
+        return
+    end
+
+    local cmake_file = vim.fn.globpath(source_dir, "CMakeLists.txt")
+    if #cmake_file == 0 then
+        vim.notify(string.format("[%s] %s: Parameter 'source_dir' (%s) has no %s file", M.PLUGIN_NAME, base_error, source_dir, M.CMAKELISTS_FILE_NAME), vim.log.levels.ERROR)
+        return
+    end
+
+    if build_dir == nil or build_dir == "" then
+        vim.notify(string.format("[%s] %s: Parameter 'build_dir' has invalid value of '%s'", M.PLUGIN_NAME, base_error, build_dir), vim.log.levels.ERROR)
+        return
+    end
+
+    if build_type == nil or build_type == "" then
+        vim.notify(string.format("[%s] %s: Parameter 'build_type' has invalid valued of '%s'", M.PLUGIN_NAME, base_error, build_type), vim.log.levels.ERROR)
+        return
+    end
+
     local command = cmake.create_configure_command(
         cmake_executable_path,
         source_dir,
@@ -127,6 +152,23 @@ function M.build(
     build_dir,
     build_type,
     args)
+
+    local base_error = "Failed creating CMake build command"
+
+    if not util.is_executable(cmake_executable_path) then
+        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, cmake_executable_path), vim.log.levels.ERROR)
+        return ""
+    end
+
+    if build_dir == nil or build_dir == "" then
+        vim.notify(string.format("[%s] %s: Parameter 'build_dir' has invalid value of '%s'", M.PLUGIN_NAME, base_error, build_dir), vim.log.levels.ERROR)
+        return
+    end
+
+    if build_type == nil or build_type == "" then
+        vim.notify(string.format("[%s] %s: Parameter 'build_type' has invalid valued of '%s'", M.PLUGIN_NAME, base_error, build_type), vim.log.levels.ERROR)
+        return
+    end
 
     local command = cmake.create_build_command(
         cmake_executable_path,
