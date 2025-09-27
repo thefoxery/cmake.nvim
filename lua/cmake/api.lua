@@ -51,7 +51,7 @@ function M.is_setup()
 end
 
 function M.is_project_directory()
-    return vim.fn.glob(cmake.CMAKELISTS_FILE_NAME) ~= ""
+    return cmake.is_project_directory()
 end
 
 function M.get_build_system_type()

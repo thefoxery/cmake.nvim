@@ -5,6 +5,10 @@ local M = {}
 
 M.CMAKELISTS_FILE_NAME = "CMakeLists.txt"
 
+function M.is_project_directory()
+    return vim.fn.glob(M.CMAKELISTS_FILE_NAME) ~= ""
+end
+
 function M.create_cmake_command(cmake_executable_path, args)
     local command = cmake_executable_path
     if args and #args > 0 then
