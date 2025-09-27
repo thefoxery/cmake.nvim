@@ -79,7 +79,7 @@ function M.set_build_type(build_type)
 end
 
 function M.get_build_targets()
-    return cmake.get_active_build_targets(vim.fn.getcwd())
+    return cmake.get_active_build_targets(M.get_build_dir())
 end
 
 function M.get_build_target()
