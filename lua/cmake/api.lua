@@ -79,13 +79,7 @@ function M.set_build_type(build_type)
 end
 
 function M.get_build_targets()
-    local build_targets = vim.fn.systemlist(string.format("cmake --build %s --target help", M.get_build_dir()))
-
-    local build_target_names = {}
-    for i=2, #build_targets do
-        table.insert(build_target_names, vim.split(vim.trim(build_targets[i]), " ")[2])
-    end
-    return build_target_names
+    return cmake.get_active_build_targets(vim.fn.getcwd())
 end
 
 function M.get_build_target()

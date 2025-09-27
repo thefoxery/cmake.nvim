@@ -169,6 +169,17 @@ function M.get_project(file)
     return project
 end
 
+function M.get_active_build_targets(build_dir)
+    local build_targets = {}
+
+    local result = vim.fn.systemlist(string.format("cmake --build %s --target help", build_dir))
+
+    for i=2, #result do
+        table.insert(build_targets, vim.split(vim.trim(result[i]), " ")[2])
+    end
+    return build_targets
+end
+
 function M.get_build_targets_data()
     local cmakelists_files = {}
     M.get_cmakelists_files(vim.fn.getcwd(), cmakelists_files)
