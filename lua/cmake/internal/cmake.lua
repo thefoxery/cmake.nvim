@@ -34,6 +34,17 @@ function M.create_configure_command(cmake_executable_path, source_dir, build_dir
     return M.create_cmake_command(cmake_executable_path, all_args)
 end
 
+function M.create_configure_command_trace(cmake_executable_path, source_dir, build_dir, build_type, args)
+    local command = M.create_configure_command(
+        cmake_executable_path,
+        source_dir,
+        build_dir,
+        build_type,
+        args
+    )
+    return string.format("%s --trace-expand 2>&1", command)
+end
+
 ---
 --- cmake --build <build-dir> <args>
 ---
@@ -108,6 +119,106 @@ function M.get_cmakelists_files(root_directory, cmakelists_files)
     end
 end
 
+local function parse_trace_line(line)
+    local path, line_nr, command, raw_args = line:match("^(.-)%((%d+)%)%:%s+(.-)%((.-)%)$")
+
+    if path then
+        local args_parts = vim.split(vim.trim(raw_args), " ")
+
+        local args = {}
+        for _, args_part in ipairs(args_parts) do
+            table.insert(args, vim.trim(args_part))
+        end
+
+        return {
+            path = vim.trim(path),
+            line_number = vim.trim(line_nr),
+            command = vim.trim(command),
+            args = args,
+        }
+    end
+    return nil
+end
+
+function M.get_cmake_data(
+    cmake_executable_path,
+    source_dir,
+    build_dir,
+    build_type,
+    args)
+
+    local command = M.create_configure_command_trace(
+        cmake_executable_path,
+        source_dir,
+        build_dir,
+        build_type,
+        args
+    )
+
+    local trace = {}
+
+    local result = vim.fn.systemlist(command)
+    if #result == 0 then
+        return trace
+    end
+
+    local projects = {}
+
+    local project = nil
+    for _, line in ipairs(result) do
+        local cmd = parse_trace_line(line)
+
+        if cmd ~= nil then
+            if cmd.command == "project" then
+                if project ~= nil then
+                    table.insert(projects, project)
+                end
+
+                local project_path = vim.fn.fnamemodify(cmd.path, ":.")
+                project_path = vim.fn.fnamemodify(project_path, ":h")
+
+                project = {
+                    name = cmd.args[1],
+                    build_targets = {
+                        executables = {},
+                        libraries = {},
+                    },
+                    path = project_path,
+                }
+            elseif cmd.command == "add_executable" then
+                if project == nil then
+                    return projects
+                end
+
+                local name = cmd.args[1]
+                project.build_targets.executables[name] = {}
+            elseif cmd.command == "add_library" then
+                if project == nil then
+                    return projects
+                end
+
+                local name = cmd.args[1]
+                local library = {
+                    type = "static",
+                }
+
+                if string.lower(cmd.args[2]) == "shared" then
+                    library.type = "shared"
+                end
+
+                project.build_targets.libraries[name] = library
+            end
+        end
+
+    end
+
+    if project ~= nil then
+        table.insert(projects, project)
+    end
+
+    return projects
+end
+
 function M.get_project(file)
     local data = util.read_file(file)
 
@@ -178,6 +289,74 @@ function M.get_active_build_targets(build_dir)
         table.insert(build_targets, vim.split(vim.trim(result[i]), " ")[2])
     end
     return build_targets
+end
+
+function M.get_target_binary_relative_path(
+    cmake_executable_path,
+    source_dir,
+    build_dir,
+    build_type,
+    args,
+    build_target)
+
+    local projects = M.get_cmake_data(
+        cmake_executable_path,
+        source_dir,
+        build_dir,
+        build_type,
+        args
+    )
+
+    local platform = vim.loop.os_uname().sysname
+
+    for _, project in ipairs(projects) do
+        for name, _ in pairs(project.build_targets.executables) do
+            if name == build_target then
+                local binary_name = name
+                local extension = ""
+                if platform == "Linux" or platform == "Darwin" then
+                    extension = ""
+                elseif platform == "Windows" then
+                    extension = ".exe"
+                end
+
+                return string.format("%s/%s%s", project.path, binary_name, extension)
+            end
+        end
+
+        for name, library in pairs(project.build_targets.libraries) do
+            if name == build_target then
+                local binary_name = name
+                local extension = ".a" -- default to static library for linux/darwin
+
+                if library.type == "static" or "shared" then
+                    if platform == "Linux" or platform == "Darwin" then
+                        binary_name = "lib" .. binary_name
+                    end
+
+                    if library.type == "static" then
+                        if platform == "Windows" then
+                            extension = ".lib"
+                        end
+                    elseif library.type == "shared" then
+                        if platform == "Linux" then
+                            extension = ".so"
+                        elseif platform == "Darwin" then
+                            extension = ".dylib"
+                        elseif platform == "Windows" then
+                            extension = ".dll"
+                        end
+                    end
+                else
+                    return ""
+                end
+
+                return string.format("%s/%s%s", project.path, binary_name, extension)
+            end
+        end
+    end
+
+    return ""
 end
 
 function M.get_build_targets_data()

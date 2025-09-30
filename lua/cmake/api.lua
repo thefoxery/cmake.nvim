@@ -189,52 +189,13 @@ function M.build_project()
 end
 
 function M.get_target_binary_relative_path(build_target_name)
-    if build_target_name == nil or build_target_name == "" then
-        return ""
-    end
-
-    local platform = vim.loop.os_uname().sysname
-
-    local build_targets = cmake.get_build_targets_data()
-    if build_targets == nil then
-        return ""
-    end
-
-    local build_target = build_targets[build_target_name]
-    if build_target == nil then
-        return ""
-    end
-
-    local binary_name = build_target_name
-    local extension = ".a" -- default to static library for Linux/MacOS
-
-    if build_target.type == "executable" then
-        if platform == "Linux" or platform == "Darwin" then
-            extension = ""
-        elseif platform == "Windows" then
-            extension = ".exe"
-        end
-    elseif build_target.type == "static_library" or "shared_library" then
-        if platform == "Linux" or platform == "Darwin" then
-            binary_name = "lib" .. binary_name
-        end
-
-        if build_target.type == "static_library" then
-            if platform == "Windows" then
-                extension = ".lib"
-            end
-        elseif build_target.type == "shared_library" then
-            if platform == "Linux" then
-                extension = ".so"
-            elseif platform == "Darwin" then
-                extension = ".dylib"
-            elseif platform == "Windows" then
-                extension = ".dll"
-            end
-        end
-    end
-
-    return string.format("%s/%s%s", build_target.path, binary_name, extension)
+    return cmake.get_target_binary_relative_path(
+        state.cmake_executable_path,
+        M.get_source_dir(),
+        M.get_build_dir(),
+        M.get_build_type(),
+        state.user_args.configuration,
+        build_target_name)
 end
 
 function M.get_target_binary_path(build_target)
