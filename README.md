@@ -82,15 +82,7 @@ dap.configurations.cpp = {
 
 ## Limitations / Known issues
 
-Parsing CMakeLists.txt files
-- variable expansion is currently limited to ${PROJECT_NAME} so only paths to build target binaries with a fixed name or ${PROJECT_NAME} will be found
-
-## TODO
-
-Brain dump of what is probably on the roadmap
-
-- Improved CMakeLists.txt parsing
-    - Variable expansion (at least one level)
+- Support for project specific args not yet implemented
 
 ## Thanks / Inspiration
 
