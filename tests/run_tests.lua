@@ -4,6 +4,7 @@ package.path = "./tests/vendor/?.lua;./lua/?.lua;./lua/?/init.lua;" .. package.p
 local luaunit = require("luaunit")
 
 require("tests.test_telescope_build_interface")
+require("tests.test_lualine_build_interface")
 
 os.exit(luaunit.LuaUnit.run())
 
