@@ -174,6 +174,27 @@ function M.build(
     util.execute_command(command)
 end
 
+function M.run_script(cmake_executable_path, vars, script_file)
+    local base_error = "Failed running CMake script"
+
+    if not util.is_executable(cmake_executable_path) then
+        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, cmake_executable_path), vim.log.levels.ERROR)
+        return ""
+    end
+
+    if vim.fn.filereadable(script_file) == 0 then
+        vim.notfy(string.format("[%s] %s: CMake script '%s' is not a file", M.PLUGIN_NAME, base_error, script_file), vim.log.levels.ERROR)
+        return ""
+    end
+
+    local command = cmake.create_run_script_command(
+        cmake_executable_path,
+        vars,
+        script_file
+    )
+    util.execute_command(command)
+end
+
 function M.build_project()
     local user_args = ""
     for _, arg in ipairs(state.user_args.build) do
