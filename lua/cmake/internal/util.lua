@@ -43,5 +43,9 @@ function M.trim_quotes(text)
     return text
 end
 
+function M.escape_regex_string(str)
+    return str:gsub("[%W%?%+%-%.%*%^%$%[%]%(%)]", "%%%1")
+end
+
 return M
 
