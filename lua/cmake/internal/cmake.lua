@@ -61,6 +61,23 @@ function M.create_build_command(cmake_executable_path, build_dir, build_type, ar
     return M.create_cmake_command(cmake_executable_path, all_args)
 end
 
+---
+--- cmake [ -D <var>=<value> ] ... -P <cmake_script_file>
+---
+function M.create_run_script_command(cmake_executable_path, vars, script_file)
+    vars = vars or {}
+
+    local args = {}
+    for var, value in pairs(vars) do
+        table.insert(args, string.format("-D %s=%s", var, value))
+    end
+
+    table.insert(args, string.format("-P %s", script_file))
+
+    return M.create_cmake_command(cmake_executable_path, args)
+end
+
+--[[
 function M.get_subdirectories(buffer)
     local blocks = {}
     for block in buffer:gmatch("add_subdirectory%((.-)%)") do
@@ -118,6 +135,7 @@ function M.get_cmakelists_files(root_directory, cmakelists_files)
         M.get_cmakelists_files(full_dir, cmakelists_files)
     end
 end
+--]]
 
 local function parse_trace_line(line)
     local path, line_nr, command, raw_args = line:match("^(.-)%((%d+)%)%:%s+(.-)%((.-)%)$")
@@ -219,6 +237,7 @@ function M.get_cmake_data(
     return projects
 end
 
+--[[
 function M.get_project(file)
     local data = util.read_file(file)
 
@@ -279,6 +298,7 @@ function M.get_project(file)
 
     return project
 end
+--]]
 
 function M.get_active_build_targets(build_dir)
     local build_targets = {}
@@ -289,6 +309,24 @@ function M.get_active_build_targets(build_dir)
         table.insert(build_targets, vim.split(vim.trim(result[i]), " ")[2])
     end
     return build_targets
+end
+
+function M.get_presets()
+    local presets = {}
+
+    local result = vim.fn.systemlist(string.format("cmake --list-presets"))
+    for i=3, #result do
+        local line = result[i]
+        local name, desc = line:match("(.+)%-(.+)")
+        if name and desc then
+            table.insert(presets, {
+                name = util.trim_quotes(vim.trim(name)),
+                desc = vim.trim(desc)
+            })
+        end
+    end
+
+    return presets
 end
 
 function M.get_target_binary_relative_path(
