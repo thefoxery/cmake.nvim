@@ -311,6 +311,35 @@ function M.get_active_build_targets(build_dir)
     return build_targets
 end
 
+function M.get_generators()
+    local handle = io.popen("cmake --help")
+    if not handle then return {} end
+
+    local result = handle:read("*a")
+    handle:close()
+
+    result = result:match("Generators(.-)$")
+    if not result then return {} end
+
+    local raw_lines = vim.split(result, "\n")
+
+    local generators = {}
+    for _, line in ipairs(raw_lines) do
+        if line ~= "" then
+            local is_default, generator, desc = line:match("^([%*]*)(.+)=(.+)")
+            if generator and desc then
+                table.insert(generators, {
+                    is_default = is_default == "*",
+                    generator = vim.trim(generator),
+                    desc = vim.trim(desc),
+                })
+            end
+        end
+    end
+
+    return generators
+end
+
 function M.get_presets()
     local presets = {}
 
@@ -420,6 +449,7 @@ function M.get_build_targets_data()
 
     return build_targets
 end
+
 
 return M
 
