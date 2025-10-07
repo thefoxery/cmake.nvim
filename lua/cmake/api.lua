@@ -1,5 +1,5 @@
 
-local state = require("cmake.internal.state")
+local config = require("cmake.config")
 local util = require("cmake.internal.util")
 local cmake = require("cmake.internal.cmake")
 
@@ -24,30 +24,30 @@ function M.setup(user_opts)
     user_opts = user_opts or {}
     user_opts.user_args = user_opts.user_args or {}
 
-    state.cmake_executable_path = util.resolve(user_opts.cmake_executable_path) or default_opts.cmake_executable_path
-    state.build_dir = util.resolve(user_opts.build_dir) or default_opts.build_dir
-    state.source_dir = util.resolve(user_opts.source_dir) or default_opts.source_dir
-    state.build_types = util.resolve(user_opts.build_types) or default_opts.build_types
-    state.build_type = util.resolve(user_opts.default_build_type) or default_opts.build_type
-    state.build_target = default_opts.build_target
+    config.cmake_executable_path = util.resolve(user_opts.cmake_executable_path) or default_opts.cmake_executable_path
+    config.build_dir = util.resolve(user_opts.build_dir) or default_opts.build_dir
+    config.source_dir = util.resolve(user_opts.source_dir) or default_opts.source_dir
+    config.build_types = util.resolve(user_opts.build_types) or default_opts.build_types
+    config.build_type = util.resolve(user_opts.default_build_type) or default_opts.build_type
+    config.build_target = default_opts.build_target
 
-    state.user_args = state.user_args or {}
-    state.user_args.configuration = util.resolve(user_opts.user_args.configuration) or default_opts.user_args.configuration
-    state.user_args.build = util.resolve(user_opts.user_args.build) or default_opts.user_args.build
+    config.user_args = config.user_args or {}
+    config.user_args.configuration = util.resolve(user_opts.user_args.configuration) or default_opts.user_args.configuration
+    config.user_args.build = util.resolve(user_opts.user_args.build) or default_opts.user_args.build
 
     vim.api.nvim_create_user_command("CMakeConfigure", function()
-        M.configure(state)
+        M.configure(config)
     end, { desc = "CMake: Configure" })
 
     vim.api.nvim_create_user_command("CMakeBuild", function()
-        M.build(state)
+        M.build(config)
     end, { desc = "CMake: Build" })
 
-    state.is_setup = true
+    config.is_setup = true
 end
 
 function M.is_setup()
-    return state.is_setup
+    return config.is_setup
 end
 
 function M.is_project_directory()
@@ -59,23 +59,23 @@ function M.get_build_system_type()
 end
 
 function M.get_build_dir()
-    return state.build_dir
+    return config.build_dir
 end
 
 function M.get_source_dir()
-    return state.source_dir
+    return config.source_dir
 end
 
 function M.get_build_types()
-    return state.build_types
+    return config.build_types
 end
 
 function M.get_build_type()
-    return state.build_type
+    return config.build_type
 end
 
 function M.set_build_type(build_type)
-    state.build_type = build_type
+    config.build_type = build_type
 end
 
 function M.get_build_targets()
@@ -83,15 +83,15 @@ function M.get_build_targets()
 end
 
 function M.get_build_target()
-    return state.build_target
+    return config.build_target
 end
 
 function M.set_build_target(build_target)
-    state.build_target = build_target
+    config.build_target = build_target
 end
 
 function M.configure(user_opts)
-    local opts = user_opts or state
+    local opts = user_opts or config
 
     local base_error = "Failed creating CMake configuration command"
 
@@ -128,7 +128,7 @@ function M.configure(user_opts)
 end
 
 function M.build(user_opts)
-    local opts = user_opts or state
+    local opts = user_opts or config
     local base_error = "Failed creating CMake build command"
 
     if not util.is_executable(opts.cmake_executable_path) then
@@ -179,11 +179,11 @@ end
 
 function M.get_target_binary_relative_path(build_target_name)
     return cmake.get_target_binary_relative_path(
-        state.cmake_executable_path,
+        config.cmake_executable_path,
         M.get_source_dir(),
         M.get_build_dir(),
         M.get_build_type(),
-        state.user_args.configuration,
+        config.user_args.configuration,
         build_target_name)
 end
 
@@ -198,7 +198,7 @@ function M.get_target_binary_path(build_target)
         return ""
     end
 
-    local build_dir = state.build_dir
+    local build_dir = config.build_dir
     local path = string.format("%s/%s/%s", vim.fn.getcwd(), build_dir, binary_relative_path)
     if vim.fn.filereadable(path) == 0 then
         vim.notify(string.format("binary not found: %s", path), vim.log.levels.ERROR)
@@ -209,7 +209,7 @@ function M.get_target_binary_path(build_target)
 end
 
 function M.run_build_target()
-    local build_target = state.build_target
+    local build_target = config.build_target
     local path = M.get_target_binary_path(build_target)
     if vim.fn.filereadable(path) == 0 then
         vim.notify(string.format("binary not found: %s", path), vim.log.levels.ERROR)
