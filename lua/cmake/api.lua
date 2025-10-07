@@ -17,6 +17,7 @@ local default_opts = {
     user_args = {
         configuration = {},
         build = {},
+        install = {},
     },
 }
 
@@ -34,6 +35,7 @@ function M.setup(user_opts)
     config.user_args = config.user_args or {}
     config.user_args.configuration = util.resolve(user_opts.user_args.configuration) or default_opts.user_args.configuration
     config.user_args.build = util.resolve(user_opts.user_args.build) or default_opts.user_args.build
+    config.user_args.install = util.resolve(user_opts.user_args.install) or default_opts.user_args.install
 
     vim.api.nvim_create_user_command("CMakeConfigure", function()
         M.configure(config)
@@ -42,6 +44,14 @@ function M.setup(user_opts)
     vim.api.nvim_create_user_command("CMakeBuild", function()
         M.build(config)
     end, { desc = "CMake: Build" })
+
+    vim.api.nvim_create_user_command("CMakeInstall", function()
+        M.install(config)
+    end, { desc = "CMake: Install" })
+
+    vim.api.nvim_create_user_command("CMakeUninstall", function()
+        M.uninstall(config)
+    end, { desc = "CMake: Uninstall" })
 
     config.is_setup = true
 end
@@ -127,30 +137,6 @@ function M.configure(user_opts)
     return true
 end
 
-function M.configure_preset(user_opts)
-    local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
-    local presets = cmake.get_presets(opts.cmake_executable_path)
-
-    for _, preset in ipairs(presets) do
-        if preset.name == user_opts.preset then
-            local args = {
-                string.format("--preset=%s", user_opts.preset),
-            }
-
-            local command = cmake.create_cmake_command(
-                opts.cmake_executable_path,
-                args
-            )
-
-            util.execute_command(command)
-            return true
-        end
-    end
-
-    vim.notify(string.format("Preset '%s' is not a valid preset", user_opts.preset), vim.log.levels.ERROR)
-    return false
-end
-
 function M.build(user_opts)
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
     local base_error = "Failed creating CMake build command"
@@ -181,15 +167,84 @@ function M.build(user_opts)
     return true
 end
 
+function M.install(user_opts)
+    local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
+    local base_error = "Failed creating CMake install command"
+
+    if not util.is_executable(opts.cmake_executable_path) then
+        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, opts.cmake_executable_path), vim.log.levels.ERROR)
+        return false
+    end
+
+    if opts.build_dir == nil or opts.build_dir == "" then
+        vim.notify(string.format("[%s] %s: Parameter 'build_dir' has invalid value of '%s'", M.PLUGIN_NAME, base_error, opts.build_dir), vim.log.levels.ERROR)
+        return false
+    end
+
+    opts.user_args.install = opts.user_args.install or {}
+
+    local command = cmake.create_install_command(
+        opts.cmake_executable_path,
+        opts.build_dir,
+        opts.user_args.install
+    )
+
+    util.execute_command(command)
+    return true
+end
+
+function M.uninstall(user_opts)
+    local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
+    local base_error = "Failed creating CMake uninstall command"
+
+    if not util.is_executable(opts.cmake_executable_path) then
+        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, opts.cmake_executable_path), vim.log.levels.ERROR)
+        return false
+    end
+
+    if opts.build_dir == nil or opts.build_dir == "" then
+        vim.notify(string.format("[%s] %s: Parameter 'build_dir' has invalid value of '%s'", M.PLUGIN_NAME, base_error, opts.build_dir), vim.log.levels.ERROR)
+        return false
+    end
+
+    local command = string.format("xargs rm -v < %s/install_manifest.txt", opts.build_dir)
+    util.execute_command(command)
+    return true
+end
+
+function M.configure_preset(user_opts)
+    local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
+    local presets = cmake.get_presets2(opts.cmake_executable_path, "configure")
+
+    for _, preset in ipairs(presets) do
+        if preset.name == user_opts.preset then
+            local args = {
+                string.format("--preset=%s", opts.preset),
+            }
+
+            local command = cmake.create_cmake_command(
+                opts.cmake_executable_path,
+                args
+            )
+
+            util.execute_command(command)
+            return true
+        end
+    end
+
+    vim.notify(string.format("Preset '%s' is not a valid preset", user_opts.preset), vim.log.levels.ERROR)
+    return false
+end
+
 function M.build_preset(user_opts)
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
-    local presets = cmake.get_presets()
+    local presets = cmake.get_presets2(opts.cmake_executable_path, "build")
 
     for _, preset in ipairs(presets) do
         if preset.name == user_opts.preset then
             local args = {
                 "--build",
-                string.format("--preset=%s", user_opts.preset),
+                string.format("--preset=%s", opts.preset),
             }
 
             local command = cmake.create_cmake_command(

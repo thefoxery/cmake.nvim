@@ -61,6 +61,21 @@ function M.create_build_command(cmake_executable_path, build_dir, build_type, ar
     return M.create_cmake_command(cmake_executable_path, all_args)
 end
 
+function M.create_install_command(cmake_executable_path, install_dir, options)
+    local all_args = {
+        string.format("--install %s", install_dir)
+    }
+
+    options = options or {}
+    for _, option in ipairs(options) do
+        table.insert(all_args, option)
+    end
+
+    print(vim.inspect(all_args))
+
+    return M.create_cmake_command(cmake_executable_path, all_args)
+end
+
 ---
 --- cmake [ -D <var>=<value> ] ... -P <cmake_script_file>
 ---
@@ -217,10 +232,29 @@ function M.get_generators()
     return generators
 end
 
-function M.get_presets()
+function M.get_presets2(cmake_executable_path, type)
     local presets = {}
 
-    local result = vim.fn.systemlist(string.format("cmake --list-presets"))
+    local result = vim.fn.systemlist(string.format("%s --list-presets=%s", cmake_executable_path, type))
+    for i=3, #result do
+        local line = result[i]
+        local name, desc = line:match("(.+)%-(.+)")
+        if name and desc then
+            table.insert(presets, {
+                name = util.trim_quotes(vim.trim(name)),
+                desc = vim.trim(desc)
+            })
+        end
+    end
+
+    return presets
+end
+
+
+function M.get_presets(cmake_executable_path)
+    local presets = {}
+
+    local result = vim.fn.systemlist(string.format("%s --list-presets", cmake_executable_path))
     for i=3, #result do
         local line = result[i]
         local name, desc = line:match("(.+)%-(.+)")
