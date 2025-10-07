@@ -4,9 +4,11 @@
 # Purpose
 
 Provide a basic API for CMake functionality
+- configure(opts)
+    - configures the project. If called without arguments it will default to the configuration passed in to setup()
+- build(opts)
+    - build the project. If called without arguments it will default to the configuration passed in to setup()
 - get_build_system_type()
-- configure_project()
-- build_project()
 - set_build_type(build_type)
 - set_build_target(build_target)
 - get_target_binary_path(build_target)
@@ -50,6 +52,7 @@ be introduced to lock down stability.
 
 # default configuration
 require("cmake").setup({
+    cmake_executable_path = "cmake",
     build_dir = "build",
     source_dir = ".",
     default_build_type = "Debug", -- assume this if build system reports ""
