@@ -91,29 +91,28 @@ function M.set_build_target(build_target)
 end
 
 function M.configure(user_opts)
-    local opts = user_opts or config
-
     local base_error = "Failed creating CMake configuration command"
+    local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
 
     if not util.is_executable(opts.cmake_executable_path) then
         vim.notify(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, opts.cmake_executable_path), vim.log.levels.ERROR)
-        return
+        return false
     end
 
-    local cmake_file = vim.fn.globpath(opts.source_dir, "CMakeLists.txt")
-    if #cmake_file == 0 then
-        vim.notify(string.format("[%s] %s: Parameter 'source_dir' (%s) has no %s file", M.PLUGIN_NAME, base_error, opts.source_dir, M.CMAKELISTS_FILE_NAME), vim.log.levels.ERROR)
-        return
+    local cmake_files = vim.fn.globpath(opts.source_dir, cmake.CMAKELISTS_FILE_NAME, false, true)
+    if #cmake_files == 0 then
+        vim.notify(string.format("[%s] %s: Parameter 'source_dir' (%s) has no %s file", M.PLUGIN_NAME, base_error, opts.source_dir, cmake.CMAKELISTS_FILE_NAME), vim.log.levels.ERROR)
+        return false
     end
 
     if opts.build_dir == nil or opts.build_dir == "" then
         vim.notify(string.format("[%s] %s: Parameter 'build_dir' has invalid value of '%s'", M.PLUGIN_NAME, base_error, opts.build_dir), vim.log.levels.ERROR)
-        return
+        return false
     end
 
     if opts.build_type == nil or opts.build_type == "" then
-        vim.notify(string.format("[%s] %s: Parameter 'build_type' has invalid valued of '%s'", M.PLUGIN_NAME, base_error, opts.build_type), vim.log.levels.ERROR)
-        return
+        vim.notify(string.format("[%s] %s: Parameter 'build_type' has invalid value of '%s'", M.PLUGIN_NAME, base_error, opts.build_type), vim.log.levels.ERROR)
+        return false
     end
 
     local command = cmake.create_configure_command(
@@ -125,25 +124,50 @@ function M.configure(user_opts)
     )
 
     util.execute_command(command)
+    return true
+end
+
+function M.configure_preset(user_opts)
+    local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
+    local presets = cmake.get_presets(opts.cmake_executable_path)
+
+    for _, preset in ipairs(presets) do
+        if preset.name == user_opts.preset then
+            local args = {
+                string.format("--preset=%s", user_opts.preset),
+            }
+
+            local command = cmake.create_cmake_command(
+                opts.cmake_executable_path,
+                args
+            )
+
+            util.execute_command(command)
+            return true
+        end
+    end
+
+    vim.notify(string.format("Preset '%s' is not a valid preset", user_opts.preset), vim.log.levels.ERROR)
+    return false
 end
 
 function M.build(user_opts)
-    local opts = user_opts or config
+    local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
     local base_error = "Failed creating CMake build command"
 
     if not util.is_executable(opts.cmake_executable_path) then
         vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, opts.cmake_executable_path), vim.log.levels.ERROR)
-        return ""
+        return false
     end
 
     if opts.build_dir == nil or opts.build_dir == "" then
         vim.notify(string.format("[%s] %s: Parameter 'build_dir' has invalid value of '%s'", M.PLUGIN_NAME, base_error, opts.build_dir), vim.log.levels.ERROR)
-        return
+        return false
     end
 
     if opts.build_type == nil or opts.build_type == "" then
         vim.notify(string.format("[%s] %s: Parameter 'build_type' has invalid value of '%s'", M.PLUGIN_NAME, base_error, opts.build_type), vim.log.levels.ERROR)
-        return
+        return false
     end
 
     local command = cmake.create_build_command(
@@ -154,6 +178,32 @@ function M.build(user_opts)
     )
 
     util.execute_command(command)
+    return true
+end
+
+function M.build_preset(user_opts)
+    local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
+    local presets = cmake.get_presets()
+
+    for _, preset in ipairs(presets) do
+        if preset.name == user_opts.preset then
+            local args = {
+                "--build",
+                string.format("--preset=%s", user_opts.preset),
+            }
+
+            local command = cmake.create_cmake_command(
+                opts.cmake_executable_path,
+                args
+            )
+
+            util.execute_command(command)
+            return true
+        end
+    end
+
+    vim.notify(string.format("Preset %s is not a valid preset", user_opts.preset), vim.log.levels.ERROR)
+    return false
 end
 
 function M.run_script(cmake_executable_path, vars, script_file)
@@ -161,12 +211,12 @@ function M.run_script(cmake_executable_path, vars, script_file)
 
     if not util.is_executable(cmake_executable_path) then
         vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, cmake_executable_path), vim.log.levels.ERROR)
-        return ""
+        return false
     end
 
     if vim.fn.filereadable(script_file) == 0 then
         vim.notfy(string.format("[%s] %s: CMake script '%s' is not a file", M.PLUGIN_NAME, base_error, script_file), vim.log.levels.ERROR)
-        return ""
+        return false
     end
 
     local command = cmake.create_run_script_command(
@@ -174,7 +224,9 @@ function M.run_script(cmake_executable_path, vars, script_file)
         vars,
         script_file
     )
+
     util.execute_command(command)
+    return true
 end
 
 function M.get_target_binary_relative_path(build_target_name)

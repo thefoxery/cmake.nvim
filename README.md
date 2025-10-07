@@ -6,10 +6,44 @@
 Provide a basic API for CMake functionality
 - configure(opts)
     - configures the project. If called without arguments it will default to the configuration passed in to setup()
+    - any opts passed will override the default values set up in setup()
+
+```lua
+opts = {
+    cmake_executable_path,
+    source_dir,
+    build_dir,
+    build_type,
+    user_args = {
+        configuration = {},
+    }
+}
+```
 - build(opts)
-    - build the project. If called without arguments it will default to the configuration passed in to setup()
+    - build the project.
+    - any opts passed will override the default values set up in setup()
+
+```lua
+opts = {
+    cmake_executable_path,
+    build_dir,
+    build_type,
+    user_args = {
+        build = {},
+    }
+}
+```
+
+- configure_preset(opts)
+    - configure project using a CMakePresets.json file or CMakeUserPresets.json file
+    - i.e. require("cmake").configure_preset({ preset = "debug" })
+- build_preset(opts)
+    - build project using a CMakePresets.json file or CMakeUserPresets.json file
+    - i.e. require("cmake").build_preset({ preset = "debug" })
 - get_build_system_type()
+    - will report "CMake"
 - set_build_type(build_type)
+    - Debug, Release etc
 - set_build_target(build_target)
 - get_target_binary_path(build_target)
 

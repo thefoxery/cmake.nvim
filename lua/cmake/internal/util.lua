@@ -24,7 +24,7 @@ function M.is_executable(path)
     if path == nil or path == "" then
         return false
     end
-    return true -- TODO: implement
+    return vim.fn.executable(path) == 1
 end
 
 function M.execute_command(command)
