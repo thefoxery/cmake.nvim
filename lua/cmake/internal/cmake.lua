@@ -77,66 +77,6 @@ function M.create_run_script_command(cmake_executable_path, vars, script_file)
     return M.create_cmake_command(cmake_executable_path, args)
 end
 
---[[
-function M.get_subdirectories(buffer)
-    local blocks = {}
-    for block in buffer:gmatch("add_subdirectory%((.-)%)") do
-        table.insert(blocks, vim.trim(block))
-    end
-    return blocks
-end
-
-function M.read_cmakelists_file(path)
-    local lines = {}
-    if vim.fn.filereadable(path) == 0 then
-        return lines
-    end
-
-    for line in io.lines(path) do
-        local code = line:match("^(.-)#") or line
-        code = vim.trim(code)
-        if code and code ~= "" then
-            table.insert(lines, code)
-        end
-    end
-
-    if lines == nil or #lines == 0 then
-        return ""
-    end
-
-    local buffer = ""
-    for _, line in ipairs(lines) do
-        buffer = string.format("%s%s\n", buffer, line)
-    end
-    return buffer
-end
-
-function M.get_cmakelists_files(root_directory, cmakelists_files)
-    if root_directory == nil or root_directory == "" then
-        return
-    end
-
-    if cmakelists_files == nil then
-        return
-    end
-
-    local path = string.format("%s/%s", root_directory, M.CMAKELISTS_FILE_NAME)
-    if vim.fn.filereadable(path) == 0 then
-        return
-    end
-
-    table.insert(cmakelists_files, path)
-
-    local buffer = M.read_cmakelists_file(path)
-    local subdirectories = M.get_subdirectories(buffer)
-
-    for _, relative_dir in ipairs(subdirectories) do
-        local full_dir = string.format("%s/%s", root_directory, relative_dir)
-        M.get_cmakelists_files(full_dir, cmakelists_files)
-    end
-end
---]]
-
 local function parse_trace_line(line)
     local path, line_nr, command, raw_args = line:match("^(.-)%((%d+)%)%:%s+(.-)%((.-)%)$")
 
@@ -236,69 +176,6 @@ function M.get_cmake_data(
 
     return projects
 end
-
---[[
-function M.get_project(file)
-    local data = util.read_file(file)
-
-    local project = {}
-    for block in data:gmatch("project%((.-)%)") do -- assumes project name is not a variable
-        block = vim.trim(block)
-        project = project or {}
-        project.name = vim.split(block, " ")[1]
-    end
-
-    if project == nil or project.name == nil then
-        print("no project info found")
-        return project
-    end
-
-    project.build_targets = project.build_targets or {}
-
-    for block in data:gmatch("add_executable%((.-)%)") do
-        -- TODO: extract token replacement and make it more sophisticated
-        -- TODO: just splitting on space may break in some cases, in case we want to get more information out of this
-        block = block:gsub("${PROJECT_NAME}", project.name)
-        block = block:gsub("\n", "")
-        local parts = vim.split(block, " ")
-        for _, part in ipairs(parts) do
-            part = vim.trim(part)
-            if part ~= "" then
-                local build_target = {
-                    name = part,
-                    type = "executable",
-                }
-                table.insert(project.build_targets, build_target)
-                break
-            end
-        end
-    end
-
-    for block in data:gmatch("add_library%((.-)%)") do
-        block = block:gsub("${PROJECT_NAME}", project.name):gsub("\n", "")
-        local parts = vim.split(block, " ")
-        local build_target = {
-            name = vim.trim(parts[1]),
-        }
-
-        local library_type = vim.trim(parts[2])
-        if string.lower(library_type) == "static" then
-            build_target.type = "static_library"
-        elseif string.lower(library_type) == "shared" then
-            build_target.type = "shared_library"
-        else
-            -- if not specified, cmake defaults to static
-            build_target.type = "static_library"
-        end
-        table.insert(project.build_targets, build_target)
-    end
-
-    project.path = vim.fn.fnamemodify(file, ":.")
-    project.path = vim.fn.fnamemodify(project.path, ":h")
-
-    return project
-end
---]]
 
 function M.get_active_build_targets(build_dir)
     local build_targets = {}
@@ -449,7 +326,6 @@ function M.get_build_targets_data()
 
     return build_targets
 end
-
 
 return M
 
