@@ -34,12 +34,27 @@ opts = {
 }
 ```
 
+- install(opts)
+    - install the project
+    - any opts passed will override the default values set up in setup()
+
+```lua
+opts = {
+    cmake_executable_path,
+    build_dir,
+    user_args = {
+        install = {}, -- options like "--prefix ~/apps" goes here
+    }
+}
+```
+
 - configure_preset(opts)
     - configure project using a CMakePresets.json file or CMakeUserPresets.json file
     - i.e. require("cmake").configure_preset({ preset = "debug" })
 - build_preset(opts)
     - build project using a CMakePresets.json file or CMakeUserPresets.json file
     - i.e. require("cmake").build_preset({ preset = "debug" })
+    - also can be used to build install targets
 - get_build_system_type()
     - will report "CMake"
 - set_build_type(build_type)
