@@ -36,12 +36,12 @@ function M.setup(user_opts)
     state.user_args.build = util.resolve(user_opts.user_args.build) or default_opts.user_args.build
 
     vim.api.nvim_create_user_command("CMakeConfigure", function()
-        M.configure_project()
+        M.configure(state)
     end, { desc = "CMake: Configure" })
 
     vim.api.nvim_create_user_command("CMakeBuild", function()
-        M.build_project()
-    end, {})
+        M.build(state)
+    end, { desc = "CMake: Build" })
 
     state.is_setup = true
 end
@@ -90,85 +90,67 @@ function M.set_build_target(build_target)
     state.build_target = build_target
 end
 
-function M.configure(
-    cmake_executable_path,
-    source_dir,
-    build_dir,
-    build_type,
-    args)
+function M.configure(user_opts)
+    local opts = user_opts or state
 
     local base_error = "Failed creating CMake configuration command"
 
-    if not util.is_executable(cmake_executable_path) then
-        vim.notify(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, cmake_executable_path), vim.log.levels.ERROR)
+    if not util.is_executable(opts.cmake_executable_path) then
+        vim.notify(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, opts.cmake_executable_path), vim.log.levels.ERROR)
         return
     end
 
-    local cmake_file = vim.fn.globpath(source_dir, "CMakeLists.txt")
+    local cmake_file = vim.fn.globpath(opts.source_dir, "CMakeLists.txt")
     if #cmake_file == 0 then
-        vim.notify(string.format("[%s] %s: Parameter 'source_dir' (%s) has no %s file", M.PLUGIN_NAME, base_error, source_dir, M.CMAKELISTS_FILE_NAME), vim.log.levels.ERROR)
+        vim.notify(string.format("[%s] %s: Parameter 'source_dir' (%s) has no %s file", M.PLUGIN_NAME, base_error, opts.source_dir, M.CMAKELISTS_FILE_NAME), vim.log.levels.ERROR)
         return
     end
 
-    if build_dir == nil or build_dir == "" then
-        vim.notify(string.format("[%s] %s: Parameter 'build_dir' has invalid value of '%s'", M.PLUGIN_NAME, base_error, build_dir), vim.log.levels.ERROR)
+    if opts.build_dir == nil or opts.build_dir == "" then
+        vim.notify(string.format("[%s] %s: Parameter 'build_dir' has invalid value of '%s'", M.PLUGIN_NAME, base_error, opts.build_dir), vim.log.levels.ERROR)
         return
     end
 
-    if build_type == nil or build_type == "" then
-        vim.notify(string.format("[%s] %s: Parameter 'build_type' has invalid valued of '%s'", M.PLUGIN_NAME, base_error, build_type), vim.log.levels.ERROR)
+    if opts.build_type == nil or opts.build_type == "" then
+        vim.notify(string.format("[%s] %s: Parameter 'build_type' has invalid valued of '%s'", M.PLUGIN_NAME, base_error, opts.build_type), vim.log.levels.ERROR)
         return
     end
 
     local command = cmake.create_configure_command(
-        cmake_executable_path,
-        source_dir,
-        build_dir,
-        build_type,
-        args
+        opts.cmake_executable_path,
+        opts.source_dir,
+        opts.build_dir,
+        opts.build_type,
+        opts.user_args.configuration
     )
 
     util.execute_command(command)
 end
 
-function M.configure_project()
-    M.configure(
-        state.cmake_executable_path,
-        M.get_source_dir(),
-        M.get_build_dir(),
-        M.get_build_type(),
-        state.user_args.configuration
-    )
-end
-
-function M.build(
-    cmake_executable_path,
-    build_dir,
-    build_type,
-    args)
-
+function M.build(user_opts)
+    local opts = user_opts or state
     local base_error = "Failed creating CMake build command"
 
-    if not util.is_executable(cmake_executable_path) then
-        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, cmake_executable_path), vim.log.levels.ERROR)
+    if not util.is_executable(opts.cmake_executable_path) then
+        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, opts.cmake_executable_path), vim.log.levels.ERROR)
         return ""
     end
 
-    if build_dir == nil or build_dir == "" then
-        vim.notify(string.format("[%s] %s: Parameter 'build_dir' has invalid value of '%s'", M.PLUGIN_NAME, base_error, build_dir), vim.log.levels.ERROR)
+    if opts.build_dir == nil or opts.build_dir == "" then
+        vim.notify(string.format("[%s] %s: Parameter 'build_dir' has invalid value of '%s'", M.PLUGIN_NAME, base_error, opts.build_dir), vim.log.levels.ERROR)
         return
     end
 
-    if build_type == nil or build_type == "" then
-        vim.notify(string.format("[%s] %s: Parameter 'build_type' has invalid valued of '%s'", M.PLUGIN_NAME, base_error, build_type), vim.log.levels.ERROR)
+    if opts.build_type == nil or opts.build_type == "" then
+        vim.notify(string.format("[%s] %s: Parameter 'build_type' has invalid value of '%s'", M.PLUGIN_NAME, base_error, opts.build_type), vim.log.levels.ERROR)
         return
     end
 
     local command = cmake.create_build_command(
-        cmake_executable_path,
-        build_dir,
-        build_type,
-        args
+        opts.cmake_executable_path,
+        opts.build_dir,
+        opts.build_type,
+        opts.user_args.build
     )
 
     util.execute_command(command)
@@ -193,20 +175,6 @@ function M.run_script(cmake_executable_path, vars, script_file)
         script_file
     )
     util.execute_command(command)
-end
-
-function M.build_project()
-    local user_args = ""
-    for _, arg in ipairs(state.user_args.build) do
-        user_args = string.format("%s %s", user_args, arg)
-    end
-
-    M.build(
-        state.cmake_executable_path,
-        M.get_build_dir(),
-        M.get_build_type(),
-        state.user_args.build
-    )
 end
 
 function M.get_target_binary_relative_path(build_target_name)
