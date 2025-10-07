@@ -21,6 +21,9 @@ function M.args_to_string(args)
 end
 
 function M.is_executable(path)
+    if path == nil or path == "" then
+        return false
+    end
     return true -- TODO: implement
 end
 
