@@ -1,80 +1,12 @@
 
 # cmake.nvim
 
-# Purpose
+## Overview
 
-Provide a basic API for CMake functionality
-
-# Public API
-
-## generate(opts)
-
-Generates the project build system. If called without arguments it will default to the configuration passed in to setup()
-Any opts passed will override the default values passed along to setup()
-
-```lua
-require("cmake").generate({
-    cmake_executable_path = "cmake",
-    source_dir = ".",
-    build_dir = "build",
-    build_type = "Debug",
-    user_args = {
-        configuration = {},
-    }
-})
-```
-- build(opts)
-    - build the project.
-    - any opts passed will override the default values set up in setup()
-
-```lua
-opts = {
-    cmake_executable_path,
-    build_dir,
-    build_type,
-    user_args = {
-        build = {},
-    }
-}
-```
-
-- install(opts)
-    - install the project
-    - any opts passed will override the default values set up in setup()
-
-```lua
-opts = {
-    cmake_executable_path,
-    build_dir,
-    user_args = {
-        install = {}, -- options like "--prefix ~/apps" goes here
-    }
-}
-```
-
-- configure_preset(opts)
-    - configure project using a CMakePresets.json file or CMakeUserPresets.json file
-    - i.e. require("cmake").configure_preset({ preset = "debug" })
-- build_preset(opts)
-    - build project using a CMakePresets.json file or CMakeUserPresets.json file
-    - i.e. require("cmake").build_preset({ preset = "debug" })
-    - also can be used to build install targets
-- get_build_system_type()
-    - will report "CMake"
-- set_build_type(build_type)
-    - Debug, Release etc
-- set_build_target(build_target)
-- get_target_binary_path(build_target)
-
-Suggested companion plugins
-- [telescope-build](https://github.com/thefoxery/telescope-build.nvim)
-    - Telescope powered pickers for build type/target
-    - Configurable for any build system
-- [lualine-build](https://github.com/thefoxery/lualine-build.nvim)
-    - Displays build configuration in lualine
-    - Configurable for any build system
-
-If you are looking for a similar plugin for Make, then check out: [make.nvim](https://github.com/thefoxery/make.nvim)
+This plugin provides two main things
+- A "future proof" robust layer to interface with CMake
+- Sensible defaults
+- Builtin methods/commands for common workflows
 
 ## Goal
 
@@ -117,11 +49,156 @@ require("cmake").setup({
 })
 ```
 
-## Example DAP configuration
+## Public API
+
+### Overview
+
+This plugin provides a public API for the following CMake features
+- Generate build system
+- Build project
+- Install project
+- Uninstall project
+- Run CMake script
+- Run CMake command line tool
+- List, configure and build CMake presets provided by CMakePresets.json/CMakeUsersPresets.json files
+
+The public API evolves around the following method:
 
 ```lua
+require("cmake").create_command({
+    cmake_executable_path = "cmake", -- passing this will override the default setting from setup()
+    args = { "-B build", "-S .", "-DCMAKE_BUILD_TYPE=Debug" }
+})
+```
+
+Method will try its best to verify the cmake executable.
+
+### API
+
+```lua
+local cmake = require("cmake")
+```
+
+#### Generate
+
+```lua
+require("cmake").generate({
+    cmake_executable_path = "cmake",
+    source_dir = ".",
+    build_dir = "build",
+    build_type = "Debug",
+    args = {}
+})
+```
+
+#### Build
+
+```lua
+require("cmake").build({
+    cmake_executable_path = "cmake",
+    build_dir = "build",
+    build_type = "Debug",
+    args = {}
+})
+```
+
+#### Install
+
+```lua
+require("cmake").install({
+    cmake_executable_path = "cmake",
+    build_dir = "build",
+    args = {},
+})
+```
+
+#### Uninstall
+
+```lua
+require("cmake").uninstall({
+    build_dir = "build",
+})
+```
+
+#### Run Commandline Tool
+
+```lua
+require("cmake").run_cmdline_tool({
+    cmake_executable_path = "cmake",
+})
+```
+
+#### Run CMake script
+
+```lua
+require("cmake").run_cmake_script({
+    cmake_executable_path = "cmake",
+    vars = { "-D ENABLE_FEATURE_XYZ=ON" },
+    cmake_script_file = "features.cmake",
+})
+```
+
+### Presets
+
+#### Configure Preset
+
+Configure project using a CMakePresets.json file or CMakeUserPresets.json file
+
+```lua
+require("cmake").configure_preset({
+    cmake_executable_path = "cmake",
+    preset = "Debug",
+})
+```
+
+#### Build Preset
+
+Build project using a CMakePresets.json file or CMakeUserPresets.json file
+Can also be used to build an install target to install the project.
+
+```lua
+require("cmake").build_preset({
+    cmake_executable_path = "cmake",
+    preset = "Debug",
+})
+
+require("cmake").build_preset({
+    cmake_executable_path = "cmake",
+    preset = "install",
+})
+```
+
+### Other
+
+#### Get build system type
+
+Will report "CMake" by default
+
+```lua
+require("cmake").get_build_system_type()
+```
+
+#### Set build type
+
+```lua
+require("cmake").set_build_type("Debug")
+```
+
+#### Set build target
+
+```lua
+require("cmake").set_build_target("my_application")
+```
+
+#### Get build target binary path
+
+Can be used to locate the binary of a build target i.e. for the debug adapter
+
+```lua
+local cmake = require("cmake")
+
 dap.configurations.cpp = {
-    {
+{
         name = "Debug",
         type = "codelldb",
         request = "launch",
@@ -136,9 +213,16 @@ dap.configurations.cpp = {
     },
 ```
 
-## Limitations / Known issues
+## Suggested companion plugins
 
-- Support for project specific args not yet implemented
+- [telescope-build](https://github.com/thefoxery/telescope-build.nvim)
+    - Telescope powered pickers for build type/target
+    - Configurable for any build system
+- [lualine-build](https://github.com/thefoxery/lualine-build.nvim)
+    - Displays build configuration in lualine
+    - Configurable for any build system
+
+If you are looking for a similar plugin for Make, check out: [make.nvim](https://github.com/thefoxery/make.nvim)
 
 ## Thanks / Inspiration
 

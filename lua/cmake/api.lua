@@ -50,6 +50,18 @@ function M.is_project_directory()
     return cmake.is_project_directory()
 end
 
+---
+--- Low level API
+---
+function M.create_command(user_opts)
+    local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
+    if not util.is_executable(opts.cmake_executable_path) then
+        vim.notify(string.format("[%s] Failed creating CMake command: Parameter 'cmake_executable_path' (%s) is not an executable", M.PLUGIN_NAME, opts.cmake_executable_path), vim.log.levels.ERROR)
+        return ""
+    end
+    return cmake.create_cmake_command(opts.cmake_executable_path, opts.args or {})
+end
+
 function M.get_build_system_type()
     return "CMake"
 end
