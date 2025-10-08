@@ -3,7 +3,7 @@ local api = require("cmake.api")
 local config = require("cmake.config")
 
 vim.api.nvim_create_user_command("CMakeGenerate", function()
-    api.configure(config)
+    api.generate(config)
 end, { desc = "CMake: Configure" })
 
 vim.api.nvim_create_user_command("CMakeBuild", function()

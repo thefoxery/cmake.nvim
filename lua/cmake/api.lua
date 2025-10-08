@@ -91,7 +91,7 @@ end
 ---     cmake [<options>] -B <build-dir> [-S <source-dir>]
 ---     cmake [<options>] <source-dir | build-dir>
 ---
-function M.configure(user_opts)
+function M.generate(user_opts)
     local base_error = "Failed creating CMake configuration command"
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
 

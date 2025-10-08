@@ -4,20 +4,24 @@
 # Purpose
 
 Provide a basic API for CMake functionality
-- configure(opts)
-    - configures the project. If called without arguments it will default to the configuration passed in to setup()
-    - any opts passed will override the default values set up in setup()
+
+# Public API
+
+## generate(opts)
+
+Generates the project build system. If called without arguments it will default to the configuration passed in to setup()
+Any opts passed will override the default values passed along to setup()
 
 ```lua
-opts = {
-    cmake_executable_path,
-    source_dir,
-    build_dir,
-    build_type,
+require("cmake").generate({
+    cmake_executable_path = "cmake",
+    source_dir = ".",
+    build_dir = "build",
+    build_type = "Debug",
     user_args = {
         configuration = {},
     }
-}
+})
 ```
 - build(opts)
     - build the project.
