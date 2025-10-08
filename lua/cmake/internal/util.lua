@@ -9,17 +9,6 @@ function M.resolve(opt)
     end
 end
 
-function M.args_to_string(args)
-    local s = ""
-    for i, arg in ipairs(args) do
-        if i > 0 then
-            s = s .. " "
-        end
-        s = s .. vim.trim(arg)
-    end
-    return s
-end
-
 function M.is_executable(path)
     if path == nil or path == "" then
         return false
@@ -27,7 +16,14 @@ function M.is_executable(path)
     return vim.fn.executable(path) == 1
 end
 
-function M.execute_command(command)
+function M.execute_command(command, opts)
+    opts = opts or {}
+
+    if opts.dry_run then
+        print(string.format("[dry run] %s", command))
+        return
+    end
+
     vim.cmd("botright split | terminal echo executing: " .. command .. "; " .. command)
 end
 

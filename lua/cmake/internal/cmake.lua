@@ -12,7 +12,7 @@ end
 function M.create_cmake_command(cmake_executable_path, args)
     local command = cmake_executable_path
     if args and #args > 0 then
-        command = string.format("%s %s", command, util.args_to_string(args))
+        command = string.format("%s %s", command, table.concat(args, " "))
     end
     return command
 end
