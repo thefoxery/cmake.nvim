@@ -17,9 +17,6 @@ function M.create_cmake_command(cmake_executable_path, args)
     return command
 end
 
----
---- cmake [options] <source-dir> <build_options> | <existing build dir>
----
 function M.create_configure_command(cmake_executable_path, source_dir, build_dir, build_type, args)
     local all_args = {
         string.format("-S %s", source_dir),
@@ -45,9 +42,6 @@ function M.create_configure_command_trace(cmake_executable_path, source_dir, bui
     return string.format("%s --trace-expand 2>&1", command)
 end
 
----
---- cmake --build <build-dir> <args>
----
 function M.create_build_command(cmake_executable_path, build_dir, build_type, args)
     local all_args = {
         string.format("--build %s", build_dir),
@@ -76,9 +70,13 @@ function M.create_install_command(cmake_executable_path, install_dir, options)
     return M.create_cmake_command(cmake_executable_path, all_args)
 end
 
----
---- cmake [ -D <var>=<value> ] ... -P <cmake_script_file>
----
+function M.create_uninstall_command(cmake_executable_path, build_dir)
+    local args = {
+        string.format("xargs rm -v < %s/install_manifest.txt", build_dir),
+    }
+    return M.create_cmake_command(cmake_executable_path, args)
+end
+
 function M.create_run_script_command(cmake_executable_path, vars, script_file)
     vars = vars or {}
 
@@ -88,6 +86,19 @@ function M.create_run_script_command(cmake_executable_path, vars, script_file)
     end
 
     table.insert(args, string.format("-P %s", script_file))
+
+    return M.create_cmake_command(cmake_executable_path, args)
+end
+
+function M.create_run_cmdline_tool_command(cmake_executable_path, command, options)
+    local args = {
+        string.format("-E %s", command)
+    }
+
+    options = options or {}
+    for _, option in ipairs(options) do
+        table.insert(args, option)
+    end
 
     return M.create_cmake_command(cmake_executable_path, args)
 end
@@ -203,8 +214,46 @@ function M.get_active_build_targets(build_dir)
     return build_targets
 end
 
-function M.get_generators()
-    local handle = io.popen("cmake --help")
+function M.get_capabilities(cmake_executable_path)
+    local handle = io.popen(string.format("%s -E capabilities 2>/dev/null", cmake_executable_path)) -- available from CMake 3.19
+    if not handle then return {} end
+
+    local output = handle:read("*a")
+    handle:close()
+
+    local ok, data = pcall(vim.json.decode, output)
+    if not ok or type(data) ~= "table" then
+        vim.notify("[cmake.nvim] Failed to parse CMake capabilities output", vim.log.levels.ERROR)
+        return {}
+    end
+
+    return data
+end
+
+function M.get_generators(cmake_executable_path)
+    local handle = io.popen(string.format("%s -E capabilities 2>/dev/null", cmake_executable_path)) -- available from CMake 3.19
+    if not handle then return {} end
+
+    local output = handle:read("*a")
+    handle:close()
+
+    local ok, data = pcall(vim.json.decode, output)
+    if not ok or type(data) ~= "table" then
+        return {}
+    end
+
+    if data.generators then
+        return data.generators
+    end
+
+    return {}
+end
+
+function M.get_generators_legacy(cmake_executable_path)
+    ---
+    --- Keep this for now, in case we want to support older CMake versions
+    ---
+    local handle = io.popen(string.format("LANG=C %s --help", cmake_executable_path))
     if not handle then return {} end
 
     local result = handle:read("*a")

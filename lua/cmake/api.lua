@@ -100,6 +100,11 @@ function M.set_build_target(build_target)
     config.build_target = build_target
 end
 
+---
+--- Generate a project build system
+---     cmake [<options>] -B <build-dir> [-S <source-dir>]
+---     cmake [<options>] <source-dir | build-dir>
+---
 function M.configure(user_opts)
     local base_error = "Failed creating CMake configuration command"
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
@@ -137,6 +142,10 @@ function M.configure(user_opts)
     return true
 end
 
+---
+--- Build a project
+---     cmake --build <build-dir> [<options>] [-- <build-tool-options>]
+---
 function M.build(user_opts)
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
     local base_error = "Failed creating CMake build command"
@@ -167,6 +176,10 @@ function M.build(user_opts)
     return true
 end
 
+---
+--- Install a project
+---     cmake --install <dir> [<options>]
+---
 function M.install(user_opts)
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
     local base_error = "Failed creating CMake install command"
@@ -207,10 +220,57 @@ function M.uninstall(user_opts)
         return false
     end
 
-    local command = string.format("xargs rm -v < %s/install_manifest.txt", opts.build_dir)
+    local command = cmake.create_uninstall_commmand(opts.cmake_executable_path, opts.build_dir)
     util.execute_command(command)
     return true
 end
+
+---
+--- Run command line tool
+---     cmake -E <command> [<options>]
+---
+function M.run_cmdline_tool(cmake_executable_path, command, options)
+    local base_error = "Failed creating run cmdline tool command"
+    if not util.is_executable(cmake_executable_path) then
+        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, cmake_executable_path), vim.log.levels.ERROR)
+        return false
+    end
+
+    local cmd = cmake.create_run_cmdline_tool_command(cmake_executable_path, command, options)
+    util.execute_command(cmd)
+    return true
+end
+
+---
+--- Run a script
+---     cmake [ -D <var>=<value> ]... -P <cmake-script-file> [-- <unparsed-options>...]
+---
+function M.run_cmake_script(cmake_executable_path, vars, cmake_script_file)
+    local base_error = "Failed running CMake script"
+
+    if not util.is_executable(cmake_executable_path) then
+        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, cmake_executable_path), vim.log.levels.ERROR)
+        return false
+    end
+
+    if vim.fn.filereadable(cmake_script_file) == 0 then
+        vim.notfy(string.format("[%s] %s: CMake script '%s' is not a file", M.PLUGIN_NAME, base_error, cmake_script_file), vim.log.levels.ERROR)
+        return false
+    end
+
+    local command = cmake.create_run_script_command(
+        cmake_executable_path,
+        vars,
+        cmake_script_file
+    )
+
+    util.execute_command(command)
+    return true
+end
+
+---
+--- Presets
+---
 
 function M.configure_preset(user_opts)
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
@@ -261,28 +321,9 @@ function M.build_preset(user_opts)
     return false
 end
 
-function M.run_script(cmake_executable_path, vars, script_file)
-    local base_error = "Failed running CMake script"
-
-    if not util.is_executable(cmake_executable_path) then
-        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, cmake_executable_path), vim.log.levels.ERROR)
-        return false
-    end
-
-    if vim.fn.filereadable(script_file) == 0 then
-        vim.notfy(string.format("[%s] %s: CMake script '%s' is not a file", M.PLUGIN_NAME, base_error, script_file), vim.log.levels.ERROR)
-        return false
-    end
-
-    local command = cmake.create_run_script_command(
-        cmake_executable_path,
-        vars,
-        script_file
-    )
-
-    util.execute_command(command)
-    return true
-end
+---
+--- Run
+---
 
 function M.get_target_binary_relative_path(build_target_name)
     return cmake.get_target_binary_relative_path(
