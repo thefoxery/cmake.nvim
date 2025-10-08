@@ -274,7 +274,7 @@ end
 
 function M.configure_preset(user_opts)
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
-    local presets = cmake.get_presets2(opts.cmake_executable_path, "configure")
+    local presets = cmake.get_presets(opts.cmake_executable_path, "configure")
 
     for _, preset in ipairs(presets) do
         if preset.name == user_opts.preset then
@@ -298,7 +298,7 @@ end
 
 function M.build_preset(user_opts)
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
-    local presets = cmake.get_presets2(opts.cmake_executable_path, "build")
+    local presets = cmake.get_presets(opts.cmake_executable_path, "build")
 
     for _, preset in ipairs(presets) do
         if preset.name == user_opts.preset then

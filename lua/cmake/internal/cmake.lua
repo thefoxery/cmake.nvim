@@ -281,29 +281,10 @@ function M.get_generators_legacy(cmake_executable_path)
     return generators
 end
 
-function M.get_presets2(cmake_executable_path, type)
+function M.get_presets(cmake_executable_path, type)
     local presets = {}
 
     local result = vim.fn.systemlist(string.format("%s --list-presets=%s", cmake_executable_path, type))
-    for i=3, #result do
-        local line = result[i]
-        local name, desc = line:match("(.+)%-(.+)")
-        if name and desc then
-            table.insert(presets, {
-                name = util.trim_quotes(vim.trim(name)),
-                desc = vim.trim(desc)
-            })
-        end
-    end
-
-    return presets
-end
-
-
-function M.get_presets(cmake_executable_path)
-    local presets = {}
-
-    local result = vim.fn.systemlist(string.format("%s --list-presets", cmake_executable_path))
     for i=3, #result do
         local line = result[i]
         local name, desc = line:match("(.+)%-(.+)")
