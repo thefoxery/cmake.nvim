@@ -5,7 +5,6 @@
 
 This plugin provides two main things
 - A "future proof" robust layer to interface with CMake
-- Sensible defaults
 - Builtin methods/commands for common workflows
 
 ## Goal
