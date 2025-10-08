@@ -70,11 +70,8 @@ function M.create_install_command(cmake_executable_path, install_dir, options)
     return M.create_cmake_command(cmake_executable_path, all_args)
 end
 
-function M.create_uninstall_command(cmake_executable_path, build_dir)
-    local args = {
-        string.format("xargs rm -v < %s/install_manifest.txt", build_dir),
-    }
-    return M.create_cmake_command(cmake_executable_path, args)
+function M.create_uninstall_command(build_dir)
+    return string.format("xargs rm -v < %s/install_manifest.txt", build_dir)
 end
 
 function M.create_run_script_command(cmake_executable_path, vars, script_file)

@@ -196,17 +196,12 @@ function M.uninstall(user_opts)
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
     local base_error = "Failed creating CMake uninstall command"
 
-    if not util.is_executable(opts.cmake_executable_path) then
-        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, opts.cmake_executable_path), vim.log.levels.ERROR)
-        return false
-    end
-
     if opts.build_dir == nil or opts.build_dir == "" then
         vim.notify(string.format("[%s] %s: Parameter 'build_dir' has invalid value of '%s'", M.PLUGIN_NAME, base_error, opts.build_dir), vim.log.levels.ERROR)
         return false
     end
 
-    local command = cmake.create_uninstall_commmand(opts.cmake_executable_path, opts.build_dir)
+    local command = cmake.create_uninstall_commmand(opts.build_dir)
     util.execute_command(command)
     return true
 end
