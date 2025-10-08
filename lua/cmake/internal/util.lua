@@ -35,7 +35,7 @@ function M.read_file(path)
 end
 
 function M.trim_quotes(text)
-    if text:sub(1, 1) == "\"" and text:sub(-1) == "\"" then
+    if (text:sub(1, 1) == "\"" and text:sub(-1) == "\"") or (text:sub(1, 1) == "\'" and text:sub(-1) == "\'") then
         text = text:sub(2, #text - 1)
     end
 
