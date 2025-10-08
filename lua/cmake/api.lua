@@ -37,21 +37,7 @@ function M.setup(user_opts)
     config.user_args.build = util.resolve(user_opts.user_args.build) or default_opts.user_args.build
     config.user_args.install = util.resolve(user_opts.user_args.install) or default_opts.user_args.install
 
-    vim.api.nvim_create_user_command("CMakeConfigure", function()
-        M.configure(config)
-    end, { desc = "CMake: Configure" })
-
-    vim.api.nvim_create_user_command("CMakeBuild", function()
-        M.build(config)
-    end, { desc = "CMake: Build" })
-
-    vim.api.nvim_create_user_command("CMakeInstall", function()
-        M.install(config)
-    end, { desc = "CMake: Install" })
-
-    vim.api.nvim_create_user_command("CMakeUninstall", function()
-        M.uninstall(config)
-    end, { desc = "CMake: Uninstall" })
+    require("cmake.commands")
 
     config.is_setup = true
 end
