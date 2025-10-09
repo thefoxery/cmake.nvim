@@ -55,19 +55,16 @@ function M.create_build_command(cmake_executable, build_dir, build_type, args)
     return M.create_command(cmake_executable, all_args)
 end
 
-function M.create_install_command(cmake_executable, install_dir, options)
-    local all_args = {
-        string.format("--install %s", install_dir)
+function M.create_install_command(cmake_executable, build_dir, options)
+    local args = {
+        string.format("--install %s", build_dir)
     }
 
-    options = options or {}
-    for _, option in ipairs(options) do
-        table.insert(all_args, option)
+    for _, arg in ipairs(options or {}) do
+        table.insert(args, arg)
     end
 
-    print(vim.inspect(all_args))
-
-    return M.create_command(cmake_executable, all_args)
+    return M.create_command(cmake_executable, args)
 end
 
 function M.create_uninstall_command(build_dir)
@@ -75,10 +72,8 @@ function M.create_uninstall_command(build_dir)
 end
 
 function M.create_run_script_command(cmake_executable, vars, script_file)
-    vars = vars or {}
-
     local args = {}
-    for var, value in pairs(vars) do
+    for var, value in pairs(vars or {}) do
         table.insert(args, string.format("-D %s=%s", var, value))
     end
 
@@ -92,9 +87,8 @@ function M.create_run_cmdline_tool_command(cmake_executable, command, options)
         string.format("-E %s", command)
     }
 
-    options = options or {}
-    for _, option in ipairs(options) do
-        table.insert(args, option)
+    for _, arg in ipairs(options or {}) do
+        table.insert(args, arg)
     end
 
     return M.create_command(cmake_executable, args)
@@ -312,7 +306,8 @@ function M.get_target_binary_relative_path(
         args
     )
 
-    local platform = vim.loop.os_uname().sysname
+    ---@diagnostic disable-next-line: undefined-field
+    local platform = vim.uv.os_uname().sysname
 
     for _, project in ipairs(projects) do
         for name, _ in pairs(project.build_targets.executables) do
