@@ -20,11 +20,11 @@ end
 ---
 function M.create_command(user_opts)
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
-    if not util.is_executable(opts.cmake_executable_path) then
-        vim.notify(string.format("[%s] Failed creating CMake command: Parameter 'cmake_executable_path' (%s) is not an executable", M.PLUGIN_NAME, opts.cmake_executable_path), vim.log.levels.ERROR)
+    if not util.is_executable(opts.cmake_executable) then
+        vim.notify(string.format("[%s] Failed creating CMake command: Parameter 'cmake_executable' (%s) is not an executable", M.PLUGIN_NAME, opts.cmake_executable), vim.log.levels.ERROR)
         return ""
     end
-    return cmake.create_command(opts.cmake_executable_path, opts.args or {})
+    return cmake.create_command(opts.cmake_executable, opts.args or {})
 end
 
 ---
@@ -84,8 +84,8 @@ function M.generate(user_opts)
     local base_error = "Failed creating CMake configuration command"
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
 
-    if not util.is_executable(opts.cmake_executable_path) then
-        vim.notify(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, opts.cmake_executable_path), vim.log.levels.ERROR)
+    if not util.is_executable(opts.cmake_executable) then
+        vim.notify(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, opts.cmake_executable), vim.log.levels.ERROR)
         return false
     end
 
@@ -106,7 +106,7 @@ function M.generate(user_opts)
     end
 
     local command = cmake.create_configure_command(
-        opts.cmake_executable_path,
+        opts.cmake_executable,
         opts.source_dir,
         opts.build_dir,
         opts.build_type,
@@ -125,8 +125,8 @@ function M.build(user_opts)
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
     local base_error = "Failed creating CMake build command"
 
-    if not util.is_executable(opts.cmake_executable_path) then
-        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, opts.cmake_executable_path), vim.log.levels.ERROR)
+    if not util.is_executable(opts.cmake_executable) then
+        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, opts.cmake_executable), vim.log.levels.ERROR)
         return false
     end
 
@@ -141,7 +141,7 @@ function M.build(user_opts)
     end
 
     local command = cmake.create_build_command(
-        opts.cmake_executable_path,
+        opts.cmake_executable,
         opts.build_dir,
         opts.build_type,
         opts.user_args.build
@@ -159,8 +159,8 @@ function M.install(user_opts)
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
     local base_error = "Failed creating CMake install command"
 
-    if not util.is_executable(opts.cmake_executable_path) then
-        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, opts.cmake_executable_path), vim.log.levels.ERROR)
+    if not util.is_executable(opts.cmake_executable) then
+        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, opts.cmake_executable), vim.log.levels.ERROR)
         return false
     end
 
@@ -172,7 +172,7 @@ function M.install(user_opts)
     opts.user_args.install = opts.user_args.install or {}
 
     local command = cmake.create_install_command(
-        opts.cmake_executable_path,
+        opts.cmake_executable,
         opts.build_dir,
         opts.user_args.install
     )
@@ -199,14 +199,14 @@ end
 --- Run command line tool
 ---     cmake -E <command> [<options>]
 ---
-function M.run_cmdline_tool(cmake_executable_path, command, options)
+function M.run_cmdline_tool(cmake_executable, command, options)
     local base_error = "Failed creating run cmdline tool command"
-    if not util.is_executable(cmake_executable_path) then
-        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, cmake_executable_path), vim.log.levels.ERROR)
+    if not util.is_executable(cmake_executable) then
+        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, cmake_executable), vim.log.levels.ERROR)
         return false
     end
 
-    local cmd = cmake.create_run_cmdline_tool_command(cmake_executable_path, command, options)
+    local cmd = cmake.create_run_cmdline_tool_command(cmake_executable, command, options)
     util.execute_command(cmd)
     return true
 end
@@ -215,11 +215,11 @@ end
 --- Run a script
 ---     cmake [ -D <var>=<value> ]... -P <cmake-script-file> [-- <unparsed-options>...]
 ---
-function M.run_cmake_script(cmake_executable_path, vars, cmake_script_file)
+function M.run_cmake_script(cmake_executable, vars, cmake_script_file)
     local base_error = "Failed running CMake script"
 
-    if not util.is_executable(cmake_executable_path) then
-        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, cmake_executable_path), vim.log.levels.ERROR)
+    if not util.is_executable(cmake_executable) then
+        vim.notfy(string.format("[%s] %s: CMake executable '%s' is not an executable", M.PLUGIN_NAME, base_error, cmake_executable), vim.log.levels.ERROR)
         return false
     end
 
@@ -229,7 +229,7 @@ function M.run_cmake_script(cmake_executable_path, vars, cmake_script_file)
     end
 
     local command = cmake.create_run_script_command(
-        cmake_executable_path,
+        cmake_executable,
         vars,
         cmake_script_file
     )
@@ -244,7 +244,7 @@ end
 
 function M.configure_preset(user_opts)
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
-    local presets = cmake.get_presets(opts.cmake_executable_path, "configure")
+    local presets = cmake.get_presets(opts.cmake_executable, "configure")
 
     for _, preset in ipairs(presets) do
         if preset.name == user_opts.preset then
@@ -253,7 +253,7 @@ function M.configure_preset(user_opts)
             }
 
             local command = cmake.create_command(
-                opts.cmake_executable_path,
+                opts.cmake_xecutable,
                 args
             )
 
@@ -268,7 +268,7 @@ end
 
 function M.build_preset(user_opts)
     local opts = vim.tbl_deep_extend("keep", user_opts or {}, config)
-    local presets = cmake.get_presets(opts.cmake_executable_path, "build")
+    local presets = cmake.get_presets(opts.cmake_executable, "build")
 
     for _, preset in ipairs(presets) do
         if preset.name == user_opts.preset then
@@ -278,7 +278,7 @@ function M.build_preset(user_opts)
             }
 
             local command = cmake.create_command(
-                opts.cmake_executable_path,
+                opts.cmake_executable,
                 args
             )
 
@@ -297,7 +297,7 @@ end
 
 function M.get_target_binary_relative_path(build_target_name)
     return cmake.get_target_binary_relative_path(
-        config.cmake_executable_path,
+        config.cmake_executable,
         M.get_source_dir(),
         M.get_build_dir(),
         M.get_build_type(),

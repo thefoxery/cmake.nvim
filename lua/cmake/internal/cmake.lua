@@ -9,15 +9,15 @@ function M.is_project_directory()
     return vim.fn.glob(M.CMAKELISTS_FILE_NAME) ~= ""
 end
 
-function M.create_command(cmake_executable_path, args)
-    local command = cmake_executable_path
+function M.create_command(cmake_executable, args)
+    local command = cmake_executable
     if args and #args > 0 then
         command = string.format("%s %s", command, table.concat(args, " "))
     end
     return command
 end
 
-function M.create_configure_command(cmake_executable_path, source_dir, build_dir, build_type, args)
+function M.create_configure_command(cmake_executable, source_dir, build_dir, build_type, args)
     local all_args = {
         string.format("-S %s", source_dir),
         string.format("-B %s", build_dir),
@@ -28,12 +28,12 @@ function M.create_configure_command(cmake_executable_path, source_dir, build_dir
         table.insert(all_args, arg)
     end
 
-    return M.create_command(cmake_executable_path, all_args)
+    return M.create_command(cmake_executable, all_args)
 end
 
-function M.create_configure_command_trace(cmake_executable_path, source_dir, build_dir, build_type, args)
+function M.create_configure_command_trace(cmake_executable, source_dir, build_dir, build_type, args)
     local command = M.create_configure_command(
-        cmake_executable_path,
+        cmake_executable,
         source_dir,
         build_dir,
         build_type,
@@ -42,7 +42,7 @@ function M.create_configure_command_trace(cmake_executable_path, source_dir, bui
     return string.format("%s --trace-expand 2>&1", command)
 end
 
-function M.create_build_command(cmake_executable_path, build_dir, build_type, args)
+function M.create_build_command(cmake_executable, build_dir, build_type, args)
     local all_args = {
         string.format("--build %s", build_dir),
         string.format("--config %s", build_type),
@@ -52,10 +52,10 @@ function M.create_build_command(cmake_executable_path, build_dir, build_type, ar
         table.insert(all_args, arg)
     end
 
-    return M.create_command(cmake_executable_path, all_args)
+    return M.create_command(cmake_executable, all_args)
 end
 
-function M.create_install_command(cmake_executable_path, install_dir, options)
+function M.create_install_command(cmake_executable, install_dir, options)
     local all_args = {
         string.format("--install %s", install_dir)
     }
@@ -67,14 +67,14 @@ function M.create_install_command(cmake_executable_path, install_dir, options)
 
     print(vim.inspect(all_args))
 
-    return M.create_command(cmake_executable_path, all_args)
+    return M.create_command(cmake_executable, all_args)
 end
 
 function M.create_uninstall_command(build_dir)
     return string.format("xargs rm -v < %s/install_manifest.txt", build_dir)
 end
 
-function M.create_run_script_command(cmake_executable_path, vars, script_file)
+function M.create_run_script_command(cmake_executable, vars, script_file)
     vars = vars or {}
 
     local args = {}
@@ -84,10 +84,10 @@ function M.create_run_script_command(cmake_executable_path, vars, script_file)
 
     table.insert(args, string.format("-P %s", script_file))
 
-    return M.create_command(cmake_executable_path, args)
+    return M.create_command(cmake_executable, args)
 end
 
-function M.create_run_cmdline_tool_command(cmake_executable_path, command, options)
+function M.create_run_cmdline_tool_command(cmake_executable, command, options)
     local args = {
         string.format("-E %s", command)
     }
@@ -97,7 +97,7 @@ function M.create_run_cmdline_tool_command(cmake_executable_path, command, optio
         table.insert(args, option)
     end
 
-    return M.create_command(cmake_executable_path, args)
+    return M.create_command(cmake_executable, args)
 end
 
 local function parse_trace_line(line)
@@ -122,14 +122,14 @@ local function parse_trace_line(line)
 end
 
 function M.get_cmake_data(
-    cmake_executable_path,
+    cmake_executable,
     source_dir,
     build_dir,
     build_type,
     args)
 
     local command = M.create_configure_command_trace(
-        cmake_executable_path,
+        cmake_executable,
         source_dir,
         build_dir,
         build_type,
@@ -211,8 +211,8 @@ function M.get_active_build_targets(build_dir)
     return build_targets
 end
 
-function M.get_capabilities(cmake_executable_path)
-    local handle = io.popen(string.format("%s -E capabilities 2>/dev/null", cmake_executable_path)) -- available from CMake 3.19
+function M.get_capabilities(cmake_executable)
+    local handle = io.popen(string.format("%s -E capabilities 2>/dev/null", cmake_executable)) -- available from CMake 3.19
     if not handle then return {} end
 
     local output = handle:read("*a")
@@ -227,8 +227,8 @@ function M.get_capabilities(cmake_executable_path)
     return data
 end
 
-function M.get_generators(cmake_executable_path)
-    local handle = io.popen(string.format("%s -E capabilities 2>/dev/null", cmake_executable_path)) -- available from CMake 3.19
+function M.get_generators(cmake_executable)
+    local handle = io.popen(string.format("%s -E capabilities 2>/dev/null", cmake_executable)) -- available from CMake 3.19
     if not handle then return {} end
 
     local output = handle:read("*a")
@@ -246,11 +246,11 @@ function M.get_generators(cmake_executable_path)
     return {}
 end
 
-function M.get_generators_legacy(cmake_executable_path)
+function M.get_generators_legacy(cmake_executable)
     ---
     --- Keep this for now, in case we want to support older CMake versions
     ---
-    local handle = io.popen(string.format("LANG=C %s --help", cmake_executable_path))
+    local handle = io.popen(string.format("LANG=C %s --help", cmake_executable))
     if not handle then return {} end
 
     local result = handle:read("*a")
@@ -278,10 +278,10 @@ function M.get_generators_legacy(cmake_executable_path)
     return generators
 end
 
-function M.get_presets(cmake_executable_path, type)
+function M.get_presets(cmake_executable, type)
     local presets = {}
 
-    local result = vim.fn.systemlist(string.format("%s --list-presets=%s", cmake_executable_path, type))
+    local result = vim.fn.systemlist(string.format("%s --list-presets=%s", cmake_executable, type))
     for i=3, #result do
         local line = result[i]
         local name, desc = line:match("(.+)%-(.+)")
@@ -297,7 +297,7 @@ function M.get_presets(cmake_executable_path, type)
 end
 
 function M.get_target_binary_relative_path(
-    cmake_executable_path,
+    cmake_executable,
     source_dir,
     build_dir,
     build_type,
@@ -305,7 +305,7 @@ function M.get_target_binary_relative_path(
     build_target)
 
     local projects = M.get_cmake_data(
-        cmake_executable_path,
+        cmake_executable,
         source_dir,
         build_dir,
         build_type,

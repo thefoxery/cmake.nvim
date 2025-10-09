@@ -41,7 +41,7 @@ be introduced to lock down stability.
 ```lua
 # default configuration
 require("cmake").setup({
-    cmake_executable_path = "cmake",
+    cmake_executable = "cmake",
     build_dir = "build",
     source_dir = ".",
     default_build_type = "Debug", -- assume this if build system reports ""
@@ -61,7 +61,7 @@ The public API evolves around the following method:
 
 ```lua
 require("cmake").create_command({
-    cmake_executable_path = "cmake", -- passing this will override the default setting from setup()
+    cmake_executable = "cmake", -- passing this will override the default setting from setup()
     args = { "-B build", "-S .", "-DCMAKE_BUILD_TYPE=Debug" }
 })
 ```
@@ -78,7 +78,7 @@ local cmake = require("cmake")
 
 ```lua
 require("cmake").generate({
-    cmake_executable_path = "cmake",
+    cmake_executable = "cmake",
     source_dir = ".",
     build_dir = "build",
     build_type = "Debug",
@@ -90,7 +90,7 @@ require("cmake").generate({
 
 ```lua
 require("cmake").build({
-    cmake_executable_path = "cmake",
+    cmake_executable = "cmake",
     build_dir = "build",
     build_type = "Debug",
     args = {}
@@ -101,7 +101,7 @@ require("cmake").build({
 
 ```lua
 require("cmake").install({
-    cmake_executable_path = "cmake",
+    cmake_executable = "cmake",
     build_dir = "build",
     args = {},
 })
@@ -119,7 +119,7 @@ require("cmake").uninstall({
 
 ```lua
 require("cmake").run_cmdline_tool({
-    cmake_executable_path = "cmake",
+    cmake_executable = "cmake",
 })
 ```
 
@@ -127,7 +127,7 @@ require("cmake").run_cmdline_tool({
 
 ```lua
 require("cmake").run_cmake_script({
-    cmake_executable_path = "cmake",
+    cmake_executable = "cmake",
     vars = { "-D ENABLE_FEATURE_XYZ=ON" },
     cmake_script_file = "features.cmake",
 })
@@ -141,7 +141,7 @@ Configure project using a CMakePresets.json file or CMakeUserPresets.json file
 
 ```lua
 require("cmake").configure_preset({
-    cmake_executable_path = "cmake",
+    cmake_executable = "cmake",
     preset = "Debug",
 })
 ```
@@ -153,12 +153,12 @@ Can also be used to build an install target to install the project.
 
 ```lua
 require("cmake").build_preset({
-    cmake_executable_path = "cmake",
+    cmake_executable = "cmake",
     preset = "Debug",
 })
 
 require("cmake").build_preset({
-    cmake_executable_path = "cmake",
+    cmake_executable = "cmake",
     preset = "install",
 })
 ```

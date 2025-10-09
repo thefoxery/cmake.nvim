@@ -20,17 +20,17 @@ function M.check()
         health.ok(" - Plugin is configured")
     end
 
-    if config.cmake_executable_path == nil or config.cmake_executable_path == "" then
-        health.error(" - CMake executable path is not set. Please set cmake_executable_path in the configuration.")
+    if config.cmake_executable == nil or config.cmake_executable == "" then
+        health.error(" - CMake executable path is not set. Please set 'cmake_executable' in the configuration.")
     else
-        local handle = io.popen(string.format('"%s" --version', config.cmake_executable_path))
+        local handle = io.popen(string.format('"%s" --version', config.cmake_executable))
         if not handle then
-            health.error(string.format(" - CMake executable not found at '%s'. Make sure the path is correct.", config.cmake_executable_path))
+            health.error(string.format(" - CMake executable not found at '%s'. Make sure the path is correct.", config.cmake_executable))
         else
             local result = handle:read("*a")
             handle:close()
             if result and result:match("cmake version") then
-                health.ok(string.format(" - Found CMake executable at '%s'", config.cmake_executable_path))
+                health.ok(string.format(" - Found CMake executable at '%s'", config.cmake_executable))
             end
         end
     end

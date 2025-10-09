@@ -2,7 +2,7 @@
 local util = require("cmake.internal.util")
 
 local M = {
-    cmake_executable_path = "cmake",
+    cmake_executable = "cmake",
     build_dir = "build",
     source_dir = ".",
     build_types = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" },
@@ -19,7 +19,7 @@ function M.load_opts(user_opts)
     user_opts = user_opts or {}
     user_opts.user_args = user_opts.user_args or {}
 
-    M.cmake_executable_path = util.resolve(user_opts.cmake_executable_path) or M.cmake_executable_path
+    M.cmake_executable = util.resolve(user_opts.cmake_executable) or M.cmake_executable
     M.build_dir = util.resolve(user_opts.build_dir) or M.build_dir
     M.source_dir = util.resolve(user_opts.source_dir) or M.source_dir
     M.build_types = util.resolve(user_opts.build_types) or M.build_types
