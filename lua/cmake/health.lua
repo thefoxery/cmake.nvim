@@ -24,15 +24,16 @@ function M.check()
         health.error(" - CMake executable path is not set. Please set cmake_executable_path in the configuration.")
     else
         local handle = io.popen(string.format('"%s" --version', config.cmake_executable_path))
-        local result = handle:read("*a")
-        handle:close()
-        if result and result:match("cmake version") then
-            health.ok(string.format(" - Found CMake executable at '%s'", config.cmake_executable_path))
-        else
+        if not handle then
             health.error(string.format(" - CMake executable not found at '%s'. Make sure the path is correct.", config.cmake_executable_path))
+        else
+            local result = handle:read("*a")
+            handle:close()
+            if result and result:match("cmake version") then
+                health.ok(string.format(" - Found CMake executable at '%s'", config.cmake_executable_path))
+            end
         end
     end
-
 end
 
 return M
