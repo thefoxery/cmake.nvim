@@ -7,35 +7,8 @@ local M = {}
 
 M.PLUGIN_NAME = "cmake.nvim"
 
-local default_opts = {
-    cmake_executable_path = "cmake",
-    build_dir = "build",
-    source_dir = ".",
-    build_types = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" },
-    build_type = "Debug",
-    build_target = "",
-    user_args = {
-        configuration = {},
-        build = {},
-        install = {},
-    },
-}
-
 function M.setup(user_opts)
-    user_opts = user_opts or {}
-    user_opts.user_args = user_opts.user_args or {}
-
-    config.cmake_executable_path = util.resolve(user_opts.cmake_executable_path) or default_opts.cmake_executable_path
-    config.build_dir = util.resolve(user_opts.build_dir) or default_opts.build_dir
-    config.source_dir = util.resolve(user_opts.source_dir) or default_opts.source_dir
-    config.build_types = util.resolve(user_opts.build_types) or default_opts.build_types
-    config.build_type = util.resolve(user_opts.default_build_type) or default_opts.build_type
-    config.build_target = default_opts.build_target
-
-    config.user_args = config.user_args or {}
-    config.user_args.configuration = util.resolve(user_opts.user_args.configuration) or default_opts.user_args.configuration
-    config.user_args.build = util.resolve(user_opts.user_args.build) or default_opts.user_args.build
-    config.user_args.install = util.resolve(user_opts.user_args.install) or default_opts.user_args.install
+    config.setup(user_opts)
 
     require("cmake.commands")
 

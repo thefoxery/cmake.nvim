@@ -39,8 +39,6 @@ be introduced to lock down stability.
 ## Setup
 
 ```lua
-# plugin setup
-
 # default configuration
 require("cmake").setup({
     cmake_executable_path = "cmake",
