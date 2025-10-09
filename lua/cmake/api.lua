@@ -15,14 +15,6 @@ function M.setup(user_opts)
     config.is_setup = true
 end
 
-function M.is_setup()
-    return config.is_setup
-end
-
-function M.is_project_directory()
-    return cmake.is_project_directory()
-end
-
 ---
 --- Low level API
 ---
@@ -38,6 +30,14 @@ end
 ---
 --- Getters and Setters
 ---
+
+function M.is_setup()
+    return config.is_setup
+end
+
+function M.is_project_directory()
+    return cmake.is_project_directory()
+end
 
 function M.get_build_system_type()
     return "CMake"
