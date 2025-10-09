@@ -15,7 +15,7 @@ local M = {
     },
 }
 
-function M.setup(user_opts)
+function M.load_opts(user_opts)
     user_opts = user_opts or {}
     user_opts.user_args = user_opts.user_args or {}
 

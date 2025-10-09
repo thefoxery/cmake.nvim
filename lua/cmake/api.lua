@@ -8,7 +8,7 @@ local M = {}
 M.PLUGIN_NAME = "cmake.nvim"
 
 function M.setup(user_opts)
-    config.setup(user_opts)
+    config.load_opts(user_opts)
 
     require("cmake.commands")
 
