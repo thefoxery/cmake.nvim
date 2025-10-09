@@ -59,8 +59,12 @@ function M.create_command(user_opts)
         vim.notify(string.format("[%s] Failed creating CMake command: Parameter 'cmake_executable_path' (%s) is not an executable", M.PLUGIN_NAME, opts.cmake_executable_path), vim.log.levels.ERROR)
         return ""
     end
-    return cmake.create_cmake_command(opts.cmake_executable_path, opts.args or {})
+    return cmake.create_command(opts.cmake_executable_path, opts.args or {})
 end
+
+---
+--- Getters and Setters
+---
 
 function M.get_build_system_type()
     return "CMake"
@@ -275,7 +279,7 @@ function M.configure_preset(user_opts)
                 string.format("--preset=%s", opts.preset),
             }
 
-            local command = cmake.create_cmake_command(
+            local command = cmake.create_command(
                 opts.cmake_executable_path,
                 args
             )
@@ -300,7 +304,7 @@ function M.build_preset(user_opts)
                 string.format("--preset=%s", opts.preset),
             }
 
-            local command = cmake.create_cmake_command(
+            local command = cmake.create_command(
                 opts.cmake_executable_path,
                 args
             )

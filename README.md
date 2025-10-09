@@ -3,9 +3,16 @@
 
 ## Overview
 
-This plugin provides two main things
-- A "future proof" robust layer to interface with CMake
-- Builtin methods/commands for common workflows
+This plugin aims to provide two main things
+- A "future proof" robust interface to interact with CMake
+- A public api with methods for common workflows
+    - Generate build system
+    - Build project
+    - Install project
+    - Uninstall project
+    - Run CMake script
+    - Run CMake command line tool
+    - List, configure and build CMake presets provided by CMakePresets.json/CMakeUsersPresets.json files
 
 ## Goal
 
@@ -51,15 +58,6 @@ require("cmake").setup({
 ## Public API
 
 ### Overview
-
-This plugin provides a public API for the following CMake features
-- Generate build system
-- Build project
-- Install project
-- Uninstall project
-- Run CMake script
-- Run CMake command line tool
-- List, configure and build CMake presets provided by CMakePresets.json/CMakeUsersPresets.json files
 
 The public API evolves around the following method:
 

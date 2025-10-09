@@ -9,7 +9,7 @@ function M.is_project_directory()
     return vim.fn.glob(M.CMAKELISTS_FILE_NAME) ~= ""
 end
 
-function M.create_cmake_command(cmake_executable_path, args)
+function M.create_command(cmake_executable_path, args)
     local command = cmake_executable_path
     if args and #args > 0 then
         command = string.format("%s %s", command, table.concat(args, " "))
@@ -28,7 +28,7 @@ function M.create_configure_command(cmake_executable_path, source_dir, build_dir
         table.insert(all_args, arg)
     end
 
-    return M.create_cmake_command(cmake_executable_path, all_args)
+    return M.create_command(cmake_executable_path, all_args)
 end
 
 function M.create_configure_command_trace(cmake_executable_path, source_dir, build_dir, build_type, args)
@@ -52,7 +52,7 @@ function M.create_build_command(cmake_executable_path, build_dir, build_type, ar
         table.insert(all_args, arg)
     end
 
-    return M.create_cmake_command(cmake_executable_path, all_args)
+    return M.create_command(cmake_executable_path, all_args)
 end
 
 function M.create_install_command(cmake_executable_path, install_dir, options)
@@ -67,7 +67,7 @@ function M.create_install_command(cmake_executable_path, install_dir, options)
 
     print(vim.inspect(all_args))
 
-    return M.create_cmake_command(cmake_executable_path, all_args)
+    return M.create_command(cmake_executable_path, all_args)
 end
 
 function M.create_uninstall_command(build_dir)
@@ -84,7 +84,7 @@ function M.create_run_script_command(cmake_executable_path, vars, script_file)
 
     table.insert(args, string.format("-P %s", script_file))
 
-    return M.create_cmake_command(cmake_executable_path, args)
+    return M.create_command(cmake_executable_path, args)
 end
 
 function M.create_run_cmdline_tool_command(cmake_executable_path, command, options)
@@ -97,7 +97,7 @@ function M.create_run_cmdline_tool_command(cmake_executable_path, command, optio
         table.insert(args, option)
     end
 
-    return M.create_cmake_command(cmake_executable_path, args)
+    return M.create_command(cmake_executable_path, args)
 end
 
 local function parse_trace_line(line)

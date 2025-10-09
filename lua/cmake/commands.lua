@@ -11,10 +11,10 @@ vim.api.nvim_create_user_command("CMakeBuild", function()
 end, { desc = "CMake: Build" })
 
 vim.api.nvim_create_user_command("CMakeInstall", function()
-    M.install(config)
+    api.install(config)
 end, { desc = "CMake: Install" })
 
 vim.api.nvim_create_user_command("CMakeUninstall", function()
-    M.uninstall(config)
+    api.uninstall(config)
 end, { desc = "CMake: Uninstall" })
 
