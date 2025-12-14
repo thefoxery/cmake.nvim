@@ -9,10 +9,9 @@ M.PLUGIN_NAME = "cmake.nvim"
 
 function M.setup(user_opts)
     config.load_opts(user_opts)
+    config.is_setup = true
 
     require("cmake.commands")
-
-    config.is_setup = true
 end
 
 ---
