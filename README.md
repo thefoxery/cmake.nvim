@@ -32,8 +32,9 @@ be introduced to lock down stability.
 # lazy
 
 {
-    'thefoxery/cmake.nvim",
+    "thefoxery/cmake.nvim",
 }
+
 ```
 
 ## Setup
